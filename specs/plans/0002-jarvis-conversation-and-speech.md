@@ -48,6 +48,12 @@ Acquire when an active conversation needs speech capacity, renew before expiry, 
 
 Resolve the observed public-path 502 from the staging VM using verified TLS and current registry routes. Local synthesis success alone is insufficient. Shared-service changes, if needed, require their own disposable candidate and explicit promotion approval.
 
+## Mobile browser transport decision (2026-11-14)
+
+The [fifteen-project mobile duplex source review](../research/mobile-duplex-source-synthesis.md) selects Pipecat SmallWebRTC plus its server voice pipeline as the next implementation candidate. Retain BB orchestration, configured STT and Alfred; replace normal browser16k capture/utterance upload/sentence-WAV playback with a native microphone RTP track, server-side processing and persistent remote-track playback. Qwen's isolated Node WebRTC media layer is the fallback donor if this integration is impractical. This is a source-backed selection, not a completed migration or phone/car acceptance result.
+
+The existing one-browser/two-peer spike does not satisfy real remote media, interruption or reconnect acceptance. Implement and verify the actual VM endpoint with reachable ICE/TURN, request cancellation, queued-audio draining, stale-generation suppression and honest delivered-text accounting. Keep the original hands-free, microphone-off announcement, background limitation and latency requirements. Do not make further engineering contingent on Chris interpreting another diagnostic matrix; document physical-device observations separately from automated verification.
+
 ## Source-backed bootstrap
 
 Follow the [voice source review](../research/jarvis-voice-source-review.md) and [BB reuse review](../research/jarvis-moltis-and-bb-source-review.md): adapt Qwen's turn/correlation primitives and notification claims, reuse BB's speech normalization and UI components, and adopt Paseo's ordered STT-finalization and played-acknowledgement contracts. Evaluate Pipecat Smart Turn as a pinned narrow dependency against supported provider detection before selecting the detector; check model terms separately. Avoid copying silence thresholds that already consume the end-to-audio budget. Require the current claimant and playback generation when acknowledging delivered speech; preserve interrupted/unknown delivery honestly.

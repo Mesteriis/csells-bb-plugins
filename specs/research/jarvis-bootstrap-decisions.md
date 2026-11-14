@@ -2,6 +2,10 @@
 
 Date: 2026-11-14. Requested prerequisite: inspect the strongest implementations in Chris's awesome-jarvis repository before writing implementation code. Research is complete for the targeted source paths below; live qualification is still pending. No upstream applications or test suites were executed during the research phase. Implementation began afterward; Qwen lifecycle primitives and the existing BB orb have now been incorporated with provenance and focused tests.
 
+## Mobile media revision, 2026-11-14
+
+The [fifteen-project browser duplex audit](mobile-duplex-source-synthesis.md) extends this initial research after actual Android/car playback failures. Its new media decision selects Pipecat SmallWebRTC and the server voice pipeline as the implementation candidate, retaining BB orchestration, existing STT and Alfred. This supersedes the narrow Smart Turn-only reuse choice for the upcoming media integration; the existing narrow sidecar and custom browser media path remain the currently implemented behavior. No remote-media migration or phone acceptance is claimed. The original orchestration, authority and durable-work requirements below remain applicable.
+
 ## Decision
 
 Bootstrap the plugin from the existing BB Jarvis branch plus small, source-attributed Qwen modules. Reuse BB's agent/session/runtime machinery and the registered Pocket Alfred service. Use established turn detection rather than inventing a semantic detector. Borrow specific recovery, approval and memory invariants from OpenClaw, Hermes, Happy and Moltis where their implementations solve our concrete gaps.

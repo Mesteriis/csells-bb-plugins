@@ -1,0 +1,144 @@
+{
+  "date": "2026-11-14",
+  "method": "Source inspection; cited Git revisions and local paths validated, no upstream suites or hardware qualification run. Hume release identity in SDK audit.",
+  "sources": {
+    "https://github.com/QwenAudio/qwen-audio-agent": {
+      "revision": "02990dc159d2a6d211f4563daa5120ac9979a0bf",
+      "files": [
+        "LICENSE",
+        "packages/webrtc/package.json",
+        "server/src/transport/webrtc/media-process.mjs",
+        "server/src/transport/webrtc/media.mjs",
+        "server/src/transport/webrtc/protocol.mjs",
+        "server/src/transport/webrtc/routes.mjs",
+        "server/src/voice/realtime-input-runtime.mjs",
+        "shared/gateway/webrtc-browser.mjs",
+        "web/src/realtime/microphone-capture.js",
+        "web/src/realtime/useRealtimeVoice.js"
+      ]
+    },
+    "https://github.com/getpaseo/paseo": {
+      "revision": "c1d7d56b71960bca17ce86f8d358445b6135b809",
+      "files": [
+        "LICENSE",
+        "packages/app/src/audio/audio-engine.web.ts",
+        "packages/app/src/audio/playback.ts",
+        "packages/app/src/voice/voice-runtime.test.ts",
+        "packages/app/src/voice/voice-runtime.ts"
+      ]
+    },
+    "https://github.com/moltis-org/moltis": {
+      "revision": "8a12400dc10551dfb9a6b568414b91a343ef2d5d",
+      "files": [
+        "LICENSE.md",
+        "crates/web/ui/src/voice-input.ts"
+      ]
+    },
+    "https://github.com/sonichi/sutando": {
+      "revision": "18e997f0781b73aabf5d1f7222110d5a95c73da7",
+      "files": [
+        "LICENSE",
+        "src/web-voice-transport.ts"
+      ]
+    },
+    "https://github.com/fixie-ai/ultravox-client-sdk-js": {
+      "revision": "74c10f809867976e24d4e0eb5b40221fd4b02b47",
+      "files": [
+        "src/index.ts"
+      ]
+    },
+    "https://github.com/VapiAI/client-sdk-web": {
+      "revision": "6a4838b65a8690a6abfde1dbe4c42f3761959541",
+      "files": [
+        "vapi.ts"
+      ]
+    },
+    "https://github.com/elevenlabs/packages": {
+      "revision": "5bdaedcc563d4ee418458403ff535575c2a7ffb2",
+      "files": [
+        "packages/client/src/VoiceConversation.ts",
+        "packages/client/src/platform/web/output.ts",
+        "packages/client/src/platform/web/webAudioAdapter.ts",
+        "packages/client/src/utils/WebRTCConnection.ts"
+      ]
+    },
+    "https://github.com/pipecat-ai/pipecat-client-web-transports": {
+      "revision": "09956702aea9d01ee46cebbfcc9911d913e360b9",
+      "files": [
+        "transports/small-webrtc-transport/src/smallWebRTCTransport.ts"
+      ]
+    },
+    "https://github.com/pipecat-ai/pipecat": {
+      "revision": "1bc2e37b15566cd34bb6941a335ce09c3bbbab8c",
+      "files": [
+        "pyproject.toml",
+        "src/pipecat/processors/aggregators/llm_response_universal.py",
+        "src/pipecat/processors/frame_processor.py",
+        "src/pipecat/services/llm_service.py",
+        "src/pipecat/services/tts_service.py",
+        "src/pipecat/transports/base_output.py",
+        "src/pipecat/transports/base_transport.py",
+        "src/pipecat/transports/smallwebrtc/transport.py",
+        "src/pipecat/turns/user_turn_strategies.py"
+      ]
+    },
+    "https://github.com/livekit/client-sdk-js": {
+      "revision": "15ca1f39f0eded2b4ce2f525a7dcbcf6e7e3b9c7",
+      "files": [
+        "src/room/defaults.ts"
+      ]
+    },
+    "https://github.com/livekit/agents": {
+      "revision": "cbb5770c716c70009969cd7fa88e3c3662222ce9",
+      "files": [
+        "livekit-agents/livekit/agents/voice/agent_activity.py"
+      ]
+    },
+    "https://github.com/TEN-framework/ten-framework": {
+      "revision": "619abefc1bb0865be681aa531a4d5dfe2bece868",
+      "files": [
+        "LICENSE",
+        "ai_agents/agents/examples/voice-assistant-with-ten-vad/tenapp/ten_packages/extension/main_python/extension.py",
+        "ai_agents/playground/src/manager/rtc/rtc.ts"
+      ]
+    },
+    "https://github.com/gradio-app/fastrtc": {
+      "revision": "59ca4f77e1669a9599c0895fd0d7c39f356bf89f",
+      "files": [
+        "backend/fastrtc/reply_on_pause.py",
+        "backend/fastrtc/tracks.py",
+        "frontend/shared/webrtc_utils.ts"
+      ]
+    },
+    "https://github.com/moeru-ai/airi": {
+      "revision": "91eb562e3edfc624d1150985cdc6ffe7617e8ab7",
+      "files": [
+        "LICENSE",
+        "packages/audio/src/browser/sources.ts",
+        "packages/core-agent/src/voice/controller.ts",
+        "packages/core-agent/src/voice/output/response.ts",
+        "packages/stage-ui/src/composables/audio/audio-device.ts",
+        "packages/stage-ui/src/stores/voice.ts"
+      ]
+    },
+    "https://github.com/Project-N-E-K-O/N.E.K.O": {
+      "revision": "6cc6cff2caff1dcc6d8b6687e1f666e23b69b036",
+      "files": [
+        "LICENSE",
+        "main_logic/core/streaming.py",
+        "static/app/app-audio-capture.js",
+        "static/app/app-audio-playback.js",
+        "static/app/app-websocket.js",
+        "static/visit/transport/livekit-transport.js"
+      ]
+    },
+    "https://github.com/openai/openai-agents-js": {
+      "revision": "8aeac0eb255dbdff9adcdc65a0eae638cbcea74f",
+      "files": [
+        "LICENSE",
+        "packages/agents-realtime/src/openaiRealtimeWebRtc.ts",
+        "packages/agents-realtime/src/openaiRealtimeWebSocket.ts"
+      ]
+    }
+  }
+}
