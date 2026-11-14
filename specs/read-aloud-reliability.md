@@ -1,8 +1,8 @@
 # Read Aloud reliability: root cause analysis and candidate
 
 Owner: thr_apgrfz3e88. Stable plugin: 0.1.5, source in csells/bb-plugins.
-Candidate: isolated checkout in this thread storage. Promotion requires Chris's
-review of the disposable VM candidate. Stable source and configuration untouched.
+Candidate was developed in isolated thread storage and reviewed in a disposable VM.
+Chris approved production promotion and push on 2026-11-14; completion is recorded below.
 
 ## Incident and evidence
 
@@ -119,3 +119,38 @@ An injected exhausted-synthesis error remained visible after later playing,
 pause and ended events, with playback paused. Normal cancellation of an active
 chunk is classifiedHTTP410 and logged as cancellation rather than an upstream
 failure; its regression was run red (502), then green.
+
+## Production promotion — 2026-11-14
+
+Chris approved this staged candidate, promotion, merge into main and push.
+Runtime changes were pushed as `3b09b3c2be975d7805819871aea4596e743ca0a6`.
+The production plugin is version 0.1.6, installed from the permanent clean main
+worktree at `/Users/csells/code/csells/bb-plugins.worktrees/read-aloud-main/plugins/read-aloud`.
+The original checkout's branch and unrelated README, lockfile and open-in-window
+work were preserved. All five runtime source hashes match the staged approval.
+
+The permanent installation's locked dependencies passed all 51 tests, TypeScript
+checks and the production build. Plugin settings match the previous settings
+exactly. The actual production BB message action read the original analytics reply
+through all seven verified chunks and its natural 143.303999-second endpoint.
+Paced playback took 76.245 wall-clock seconds including 2x speed, and the job
+released with HTTP200. The headless test has no physical speaker; a separate
+accelerated null-sink trace was excluded from this paced-playback assertion.
+
+Previous source/bundles/settings were backed up before promotion and restored
+from encrypted Google Drive snapshot `dd89e9c43b5725e0e129ba611e52b8561c14344d699aec6db56b6196afa79d0a`.
+Final source, bundles, staging and production evidence, previous version and
+recovery instructions are in the central backup controller's encrypted Drive
+snapshot `598da7a16ca25ab63c09478f31cb859a1647233128c14d7ac268b5d2da6ebeef`.
+All six files restored byte-for-byte and every member of all four tar archives
+was read. Temporary controller exports and restore copies were removed.
+
+Bumble VM1941 (`read-aloud-stage`) and its root/cloud-init disks were permanently
+deleted after rechecking name, owner, MAC and disk identity. Template9001 and all
+unrelated guests were preserved. Its 1536MiB/2vCPU/8GiB reservation was released;
+staging credentials, browser profile, Connect share38941 and temporary listeners
+were removed. The stage registry record is retired; the production BB record has
+the deployed version, verification and recovery references.
+
+Detailed traces and cleanup receipts remain outside the VM under
+`/Users/csells/.bb/thread-storage/thr_apgrfz3e88/promotion`.
