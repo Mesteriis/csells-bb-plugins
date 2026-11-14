@@ -225,7 +225,13 @@ export function createDirector({
       watch: state.watch,
       quiet: state.quiet,
       coverage: state.coverage ?? null,
-      focus: state.focus ?? null,
+      focus: state.focus
+        ? {
+            ...state.focus,
+            binding: questionBinding(state.focus),
+            displayText: questionText(state.focus),
+          }
+        : null,
       history: state.history.slice(-30),
       pending: pending.length,
       owner: owner
@@ -246,7 +252,13 @@ export function createDirector({
     };
     state.history.push(item);
     state.history = state.history.slice(-60);
-    state.deliveries[item.id] = { status: "pending", item };
+    item.playbackClaim = randomUUID();
+    state.deliveries[item.id] = {
+      status: "pending",
+      item,
+      generation: sequence,
+      ownerLease: owner?.leaseKey,
+    };
     const ids = Object.keys(state.deliveries);
     for (const id of ids.slice(0, -60)) delete state.deliveries[id];
     await save();
@@ -337,16 +349,29 @@ export function createDirector({
       "brief",
     );
   }
-  async function answer(clientId, text) {
+  async function answer(clientId, text, presentedQuestion) {
     assertOwner(clientId);
+    const generation = sequence;
+    const fence = () => {
+      assertOwner(clientId);
+      if (generation !== sequence) throw Error("Answer superseded");
+    };
     return serial(async () => {
       assertOwner(clientId);
+      fence();
       const q = state.focus;
       if (!q)
         return say(
           "There is no focused agent question. Say “what needs me” to check.",
         );
-      if (state.focusSpoken !== questionBinding(q))
+      if (
+        presentedQuestion !== undefined &&
+        presentedQuestion !== questionBinding(q)
+      )
+        throw Error(
+          "The displayed question has changed. Read the current question again.",
+        );
+      if (!presentedQuestion && state.focusSpoken !== questionBinding(q))
         return say(
           "Let me read the current question first. " + questionText(q),
           "question",
@@ -452,6 +477,7 @@ export function createDirector({
             },
           };
           if (part + 1 < form.questions.length) {
+            fence();
             q.answers = answers;
             q.part = part + 1;
             state.focusSpoken = null;
@@ -475,10 +501,16 @@ export function createDirector({
             "This question has a form I cannot safely answer by voice yet. I have not sent anything.",
           );
       }
-      assertOwner(clientId);
+      fence();
       state.decisions[q.id] = { at: now(), outcome: "unknown" };
       await save();
-      assertOwner(clientId);
+      try {
+        fence();
+      } catch (e) {
+        delete state.decisions[q.id];
+        await save();
+        throw e;
+      }
       try {
         await mutation();
         state.decisions[q.id].outcome = "accepted";
@@ -509,17 +541,18 @@ export function createDirector({
       quiet: ["enabled"],
       brief: [],
       questions: [],
-      answer: ["text"],
+      answer: ["text", "presentedQuestion"],
       next: [],
-      talk: ["text"],
-      ack: ["utteranceId", "status"],
+      talk: ["text", "presentedQuestion"],
+      ack: ["utteranceId", "status", "playbackClaim"],
     };
     if (
       !Object.hasOwn(fields, action) ||
       typeof clientId !== "string" ||
       !/^[a-f0-9-]{36}$/i.test(clientId) ||
       Object.keys(input).some(
-        (k) => !["action", "clientId", ...fields[action]].includes(k),
+        (k) =>
+          !["action", "clientId", "requestId", ...fields[action]].includes(k),
       )
     )
       throw Error("Invalid command");
@@ -541,6 +574,12 @@ export function createDirector({
       typeof input.takeover !== "boolean"
     )
       throw Error("Invalid takeover");
+    if (
+      input.presentedQuestion !== undefined &&
+      (typeof input.presentedQuestion !== "string" ||
+        input.presentedQuestion.length > 300)
+    )
+      throw Error("Invalid question binding");
     await load();
     if (action === "state") return view();
     if (action === "start") {
@@ -571,8 +610,16 @@ export function createDirector({
     }
     if (action === "ack") {
       const entry = state.deliveries[input.utteranceId];
-      if (!entry || !["played", "interrupted"].includes(input.status))
+      if (!entry || !["played", "interrupted", "failed"].includes(input.status))
         throw Error("Invalid playback acknowledgement");
+      if (
+        entry.item.playbackClaim !== input.playbackClaim ||
+        !input.playbackClaim ||
+        entry.generation !== sequence ||
+        entry.ownerLease !== owner.leaseKey ||
+        entry.status !== "pending"
+      )
+        throw Error("Playback acknowledgement superseded");
       entry.status = input.status;
       if (
         input.status === "played" &&
@@ -615,13 +662,20 @@ export function createDirector({
         "question",
       );
     }
-    if (action === "answer") return answer(clientId, input.text);
+    if (action === "answer")
+      return answer(clientId, input.text, input.presentedQuestion);
     if (action === "next") {
       if (!state.watch || state.quiet) return view();
       const unheard = Object.values(state.deliveries).find(
         (d) => d.status === "pending" && d.item.kind === "update",
       );
-      if (unheard) return { ...view(), utterance: unheard.item };
+      if (unheard) {
+        unheard.item.playbackClaim = randomUUID();
+        unheard.generation = sequence;
+        unheard.ownerLease = owner.leaseKey;
+        await save();
+        return { ...view(), utterance: unheard.item };
+      }
       if (dirty || now() - (state.coverage?.observedAt ?? 0) > 10000)
         await refresh();
       if (!pending.length) return view();
@@ -695,7 +749,9 @@ export function createDirector({
       }
       if (/^repeat(?: that)?[.!?]*$/i.test(text)) {
         const last = state.history.findLast((h) => h.role === "assistant");
-        return say(last?.text ?? "There is nothing to repeat yet.");
+        return state.focus
+          ? say(questionText(state.focus), "question")
+          : say(last?.text ?? "There is nothing to repeat yet.");
       }
       if (/^skip(?: (?:this|that)(?: question)?)?[.!?]*$/i.test(text)) {
         const old = state.focus;
@@ -742,7 +798,8 @@ export function createDirector({
           "question",
         );
       }
-      if (raw.action === "answer" && state.focus) return answer(clientId, text);
+      if (raw.action === "answer" && state.focus)
+        return answer(clientId, text, input.presentedQuestion);
       const delegation = text.match(
         /^(?:jarvis[, ]*)?(?:start (?:a )?(?:new )?task (?:to|that)|delegate (?:a )?task to)\s+([\s\S]+)$/i,
       );

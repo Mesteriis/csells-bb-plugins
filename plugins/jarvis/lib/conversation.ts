@@ -1,3 +1,5 @@
+import { readPcmFrames } from "./pcm-stream.mjs";
+import { diagnostic } from "./diagnostics.mjs";
 import { VoiceActivityDetector, rmsOf } from "./vad";
 import { toSpeakable, SentenceStream } from "../speech";
 import type { ConversationState } from "../conversation";
@@ -6,9 +8,12 @@ import { RealtimeTurnState } from "../vendor/qwen/realtime-turn-state.mjs";
 type Command = (input: {
   action: string;
   clientId: string;
+  requestId?: string;
   enabled?: boolean;
   takeover?: boolean;
   text?: string;
+  playbackClaim?: string;
+  presentedQuestion?: string;
   utteranceId?: string;
   status?: string;
 }) => Promise<ConversationState>;
@@ -16,6 +21,7 @@ export interface VoiceView {
   active: boolean;
   listening: boolean;
   speaking: boolean;
+  preparingAudio: boolean;
   thinking: boolean;
   hearing: boolean;
   error: string;
@@ -73,6 +79,7 @@ export class VoiceConversation {
     active: false,
     listening: false,
     speaking: false,
+    preparingAudio: false,
     thinking: false,
     hearing: false,
     error: "",
@@ -111,9 +118,96 @@ export class VoiceConversation {
     minSpeechMs: 64,
     maxSpeechMs: 30000,
   });
+  private traces: Record<string, unknown>[] = [];
+  private diagnosticQueue: Record<string, unknown>[] = [];
+  private flushing = false;
+  private traceId: string = crypto.randomUUID();
+  private playbackFailed = false;
   private rpc: Command;
+  private trace(
+    stage: string,
+    phase: string,
+    extra: Record<string, unknown> = {},
+  ) {
+    const ua = navigator.userAgent;
+    const browser = ua.match(/(Chrome|Firefox|Safari|Edge)\/[0-9.]+/)?.[0];
+    const event = diagnostic({
+      stage,
+      phase,
+      clientId: this.clientId,
+      requestId: this.traceId,
+      generation: this.generation,
+      browser,
+      os: /Android/.test(ua)
+        ? "android"
+        : /iPhone|iPad/.test(ua)
+          ? "ios"
+          : /Mac/.test(ua)
+            ? "mac"
+            : "unknown",
+      ...extra,
+    });
+    if (!event) return;
+    this.traces = [
+      ...this.traces.filter((e) => Number(e.at) > Date.now() - 86400000),
+      event,
+    ].slice(-200);
+    this.diagnosticQueue = [...this.diagnosticQueue, event].slice(-100);
+    try {
+      localStorage.setItem(
+        "jarvis-diagnostics-v1",
+        JSON.stringify(this.traces),
+      );
+    } catch {
+      /* storage disabled */
+    }
+    void this.flushDiagnostics();
+  }
+  private async flushDiagnostics() {
+    if (this.flushing || !this.diagnosticQueue.length) return;
+    this.flushing = true;
+    const events = this.diagnosticQueue.slice(0, 30);
+    try {
+      const r = await fetch(base + "diagnostics", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ events }),
+        signal: AbortSignal.timeout(5000),
+      });
+      if (r.ok) this.diagnosticQueue.splice(0, events.length);
+    } catch {
+      /* retained locally when the relay is down */
+    } finally {
+      this.flushing = false;
+    }
+  }
+  exportDiagnostics() {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify({ version: 1, events: this.traces }, null, 2)], {
+        type: "application/json",
+      }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "jarvis-diagnostics.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   constructor(rpc: Command) {
     this.rpc = rpc;
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("jarvis-diagnostics-v1") ?? "[]",
+      );
+      if (Array.isArray(saved))
+        this.traces = saved
+          .slice(-200)
+          .map((e) => diagnostic(e, e.at))
+          .filter((e): e is NonNullable<typeof e> => e !== null);
+    } catch {
+      /* no saved metadata */
+    }
   }
   getSnapshot = () => this.view;
   subscribe = (fn: () => void) => {
@@ -127,23 +221,60 @@ export class VoiceConversation {
     for (const fn of this.listeners) fn();
   }
   private fail = (e: unknown) => {
+    this.trace("client", "failed");
     if (!this.closed)
       this.update({
         error: e instanceof Error ? e.message : String(e),
         thinking: false,
       });
   };
-  async connect(listen: boolean, takeover = false) {
+  async connect(listen: boolean, takeover = false, audioEnabled = true) {
     this.closed = false;
     // Resume directly in the initial user gesture; never silently acquire a mic.
-    this.audio ??= new AudioContext({ sampleRate: 16000 });
-    await this.audio.resume();
+    this.trace("connect", "start");
+    if (audioEnabled) {
+      this.audio ??= new AudioContext({ sampleRate: 16000 });
+      this.audio.onstatechange = () => {
+        const state = this.audio?.state;
+        this.trace(
+          "context",
+          state === "running" || state === "closed" || state === "suspended"
+            ? state
+            : "interrupted-context",
+        );
+        if (state !== "running" && this.view.speaking) {
+          this.playbackFailed = true;
+          this.interruptLocal();
+          this.fail(
+            Error(
+              "Audio was suspended. Tap Start Jarvis or Retry audio to resume.",
+            ),
+          );
+        }
+      };
+      await Promise.race([
+        this.audio.resume(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                Error("Audio could not start. Tap Start Jarvis to retry."),
+              ),
+            4000,
+          ),
+        ),
+      ]);
+      if (this.audio.state !== "running")
+        throw Error("Audio is suspended. Tap Start Jarvis to resume.");
+      this.trace("context", "running", { sampleRate: this.audio.sampleRate });
+    }
     const state = await this.rpc({
       action: "start",
       clientId: this.clientId,
       takeover,
     });
     this.update({ active: true, error: "", state });
+    this.trace("connect", "ready");
     if (listen) {
       await this.listen();
       if ("wakeLock" in navigator)
@@ -171,29 +302,53 @@ export class VoiceConversation {
   }
   async act(
     action: string,
-    extra: { enabled?: boolean; text?: string } = {},
+    extra: {
+      enabled?: boolean;
+      text?: string;
+      presentedQuestion?: string;
+    } = {},
     speak = true,
+    requestId: string = crypto.randomUUID(),
   ) {
     let generation = this.generation;
     try {
-      if (!this.view.active) await this.connect(false);
+      if (
+        !this.view.active ||
+        (speak && (!this.audio || this.audio.state !== "running"))
+      )
+        await this.connect(false, false, speak);
       if (action !== "heartbeat" && action !== "next") this.interruptLocal();
       generation = this.generation;
       if (action !== "next") this.update({ thinking: true, error: "" });
+      this.traceId = requestId;
+      this.trace("command", "start");
       const state = await this.rpc({
         action,
+        requestId: this.traceId,
         clientId: this.clientId,
         ...extra,
       });
       if (generation !== this.generation || this.closed) return;
-      this.update({ state, thinking: false });
+      this.trace("command", "complete");
+      this.update({
+        state,
+        thinking: false,
+        ...(state.utterance ? { caption: state.utterance.text } : {}),
+      });
       if (speak && state.utterance) {
+        this.playbackFailed = false;
         const played = await this.speak(state.utterance.text);
+        if (generation !== this.generation) return;
         await this.rpc({
           action: "ack",
+          playbackClaim: state.utterance.playbackClaim,
           clientId: this.clientId,
           utteranceId: state.utterance.id,
-          status: played ? "played" : "interrupted",
+          status: played
+            ? "played"
+            : this.playbackFailed
+              ? "failed"
+              : "interrupted",
         });
       }
     } catch (e) {
@@ -204,6 +359,7 @@ export class VoiceConversation {
     if (this.polling || !this.view.active || this.closed) return;
     this.polling = true;
     try {
+      void this.flushDiagnostics();
       const state = await this.rpc({
         action: "heartbeat",
         clientId: this.clientId,
@@ -211,6 +367,7 @@ export class VoiceConversation {
       this.update({ state });
       if (
         !this.view.speaking &&
+        !this.view.preparingAudio &&
         !this.view.thinking &&
         !this.capturing &&
         state.watch &&
@@ -237,12 +394,20 @@ export class VoiceConversation {
       }
     }
     this.output.clear();
-    this.update({ speaking: false, thinking: false });
+    this.update({ speaking: false, preparingAudio: false, thinking: false });
   }
   async interrupt() {
     this.interruptLocal();
     try {
       await this.rpc({ action: "interrupt", clientId: this.clientId });
+    } catch (e) {
+      this.fail(e);
+    }
+  }
+  async retryAudio() {
+    try {
+      await this.connect(false);
+      await this.act("talk", { text: "repeat that" });
     } catch (e) {
       this.fail(e);
     }
@@ -262,7 +427,10 @@ export class VoiceConversation {
     );
     const generation = this.generation,
       signal = this.playback.signal;
-    this.update({ speaking: true, caption: markdown });
+    this.update({ speaking: false, preparingAudio: true, caption: markdown });
+    const started = performance.now();
+    let totalBytes = 0;
+    this.trace("speech", "start");
     let cursor = this.audio.currentTime + 0.05;
     try {
       for (const part of parts) {
@@ -279,8 +447,15 @@ export class VoiceConversation {
           throw Error(
             "Alfred voice is unavailable. Your response is still shown below.",
           );
+        if (response.headers.get("content-type") !== "application/x-jarvis-pcm")
+          throw Error("Voice protocol changed. Reload Jarvis.");
         let odd: number | null = null;
-        for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
+        for await (const chunk of readPcmFrames(response.body)) {
+          if (!totalBytes)
+            this.trace("speech", "first-byte", {
+              durationMs: performance.now() - started,
+            });
+          totalBytes += chunk.length;
           if (generation !== this.generation || signal.aborted) return false;
           let bytes: Uint8Array = chunk;
           if (odd !== null) {
@@ -303,6 +478,8 @@ export class VoiceConversation {
           );
           for (let i = 0; i < samples.length; i++)
             samples[i] = data.getInt16(i * 2, true) / 32768;
+          if (this.audio.state !== "running")
+            throw Error("Audio is suspended. Tap Retry audio to resume.");
           const buffer = this.audio.createBuffer(1, samples.length, 24000);
           buffer.copyToChannel(samples, 0);
           const source = this.audio.createBufferSource();
@@ -315,17 +492,53 @@ export class VoiceConversation {
           this.output.add(source);
           cursor = Math.max(cursor, this.audio.currentTime + 0.02);
           source.start(cursor);
+          if (!this.view.speaking) {
+            this.trace("playback", "scheduled", {
+              bufferedMs: (cursor - this.audio.currentTime) * 1000,
+            });
+            this.update({ speaking: true, preparingAudio: false });
+          }
           cursor += buffer.duration;
         }
       }
-      while (this.output.size && !signal.aborted)
+      this.trace("speech", "complete", {
+        bytes: totalBytes,
+        samples: totalBytes / 2,
+        durationMs: performance.now() - started,
+      });
+      const deadline =
+        performance.now() +
+        Math.max(0, cursor - this.audio.currentTime) * 1000 +
+        5000;
+      while (this.output.size && !signal.aborted) {
+        if (performance.now() > deadline || this.audio.state !== "running")
+          throw Error("Audio playback stopped. Tap Retry audio to resume.");
         await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+      this.trace("playback", signal.aborted ? "interrupted" : "complete", {
+        bytes: totalBytes,
+        durationMs: performance.now() - started,
+      });
       return !signal.aborted;
     } catch (e) {
-      if (!signal.aborted) this.fail(e);
+      if (!signal.aborted) {
+        this.playbackFailed = true;
+        this.trace("playback", "failed", {
+          bytes: totalBytes,
+          durationMs: performance.now() - started,
+        });
+        for (const source of this.output) {
+          try {
+            source.stop();
+          } catch {}
+        }
+        this.output.clear();
+        this.fail(e);
+      }
       return false;
     } finally {
-      if (generation === this.generation) this.update({ speaking: false });
+      if (generation === this.generation)
+        this.update({ speaking: false, preparingAudio: false });
     }
   }
   async listen() {
@@ -381,6 +594,8 @@ export class VoiceConversation {
         this.captureDuringSpeech = this.view.speaking;
         void this.interrupt();
         this.captureId = crypto.randomUUID();
+        this.traceId = this.captureId;
+        this.trace("capture", "start");
         this.turns.beginVoice(this.captureId);
         this.frames = [...this.preroll];
         this.capturing = true;
@@ -416,6 +631,7 @@ export class VoiceConversation {
   }
   private mediaHeaders() {
     return {
+      "x-jarvis-request": this.traceId,
       "x-jarvis-client": this.clientId,
       "x-jarvis-lease": this.view.state?.owner?.leaseKey ?? "",
     };
@@ -423,7 +639,9 @@ export class VoiceConversation {
   private async checkTurn() {
     this.checking = true;
     const captureId = this.captureId;
+    const requestId = this.traceId;
     const captured = joined(this.frames);
+    this.trace("turn", "start", { samples: captured.length });
     try {
       const r = await fetch(base + "turn", {
         method: "POST",
@@ -438,6 +656,7 @@ export class VoiceConversation {
           "Turn detection is unavailable. Please use typed input until it recovers.",
         );
       const result = await r.json();
+      this.trace("turn", "complete", { httpStatus: r.status });
       if (
         captureId !== this.captureId ||
         !this.capturing ||
@@ -452,6 +671,7 @@ export class VoiceConversation {
       this.vad.reset();
       this.update({ hearing: false, thinking: true });
       const generation = this.generation;
+      this.trace("transcribe", "start");
       const transcript = await fetch(base + "transcribe", {
         method: "POST",
         headers: { "content-type": "application/json", ...this.mediaHeaders() },
@@ -461,6 +681,7 @@ export class VoiceConversation {
       if (!transcript.ok)
         throw Error("I could not transcribe that. Please try again.");
       const { text } = await transcript.json();
+      this.trace("transcribe", "complete", { httpStatus: transcript.status });
       if (generation !== this.generation || this.closed) return;
       this.update({ transcript: text, thinking: false, error: "" });
       if (typeof text === "string" && text.trim()) {
@@ -478,7 +699,7 @@ export class VoiceConversation {
           void this.speak(
             "I may have heard my own voice. Please say your answer again.",
           );
-        } else void this.act("talk", { text });
+        } else void this.act("talk", { text }, true, requestId);
       }
     } catch (e) {
       if (!this.captureAbort.signal.aborted) {
@@ -502,6 +723,7 @@ export class VoiceConversation {
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = null;
     this.frames = [];
+    this.preroll = [];
     this.capturing = false;
     this.vad.reset();
     this.update({ listening: false, hearing: false });

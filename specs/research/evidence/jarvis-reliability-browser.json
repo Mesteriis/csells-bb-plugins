@@ -1,0 +1,397 @@
+{
+  "at": "2026-11-14T20:47:25.673Z",
+  "errors": [],
+  "media": [
+    {
+      "path": "speech",
+      "status": 200
+    },
+    {
+      "path": "turn",
+      "status": 200
+    },
+    {
+      "path": "transcribe",
+      "status": 200
+    },
+    {
+      "path": "speech",
+      "status": 200
+    },
+    {
+      "path": "speech",
+      "status": 503
+    }
+  ],
+  "physicalAudioVerified": false,
+  "peakRms": 0.181748365367201,
+  "alertsBeforeInjection": [],
+  "failureVisible": true,
+  "typedChatWithoutAudio": true,
+  "typedAnswerWorkerConfirmed": true,
+  "mobileOverflow": false,
+  "traces": [
+    {
+      "at": 1794689247545,
+      "stage": "connect",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "0656f586-66db-434c-a805-52df681e6a97",
+      "generation": 0,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689247877,
+      "stage": "context",
+      "phase": "running",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "0656f586-66db-434c-a805-52df681e6a97",
+      "generation": 0,
+      "sampleRate": 16000,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689247900,
+      "stage": "context",
+      "phase": "running",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "0656f586-66db-434c-a805-52df681e6a97",
+      "generation": 0,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689248131,
+      "stage": "connect",
+      "phase": "ready",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "0656f586-66db-434c-a805-52df681e6a97",
+      "generation": 0,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689250245,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "c6d3e062-3357-4c7c-9052-319c176448d9",
+      "generation": 1,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689250964,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689251158,
+      "stage": "command",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689251163,
+      "stage": "speech",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689251280,
+      "stage": "speech",
+      "phase": "first-byte",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "durationMs": 117.60000002384186,
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689251281,
+      "stage": "playback",
+      "phase": "scheduled",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "generation": 2,
+      "bufferedMs": 20.000000000000018,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689251504,
+      "stage": "speech",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "durationMs": 341.5,
+      "bytes": 76800,
+      "samples": 38400,
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689252947,
+      "stage": "playback",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aadb7aa6-920c-4780-a4c4-81cae0ed1c64",
+      "durationMs": 1783.9000000059605,
+      "bytes": 76800,
+      "generation": 2,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689253779,
+      "stage": "capture",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 3,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689254931,
+      "stage": "turn",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "samples": 25088,
+      "generation": 3,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689255083,
+      "stage": "turn",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 3,
+      "httpStatus": 200,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689255085,
+      "stage": "transcribe",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 3,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256171,
+      "stage": "transcribe",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 3,
+      "httpStatus": 200,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256171,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256579,
+      "stage": "command",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256582,
+      "stage": "speech",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256692,
+      "stage": "speech",
+      "phase": "first-byte",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "durationMs": 109.40000000596046,
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689256692,
+      "stage": "playback",
+      "phase": "scheduled",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "generation": 4,
+      "bufferedMs": 19.999999999999574,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689257350,
+      "stage": "speech",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "durationMs": 767.3000000119209,
+      "bytes": 211968,
+      "samples": 105984,
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261138,
+      "stage": "playback",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "077097fa-7aba-4a95-8ebd-0dcfd71c9cdb",
+      "durationMs": 4555.699999988079,
+      "bytes": 211968,
+      "generation": 4,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261666,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "7b24bfe6-8977-4b0f-8599-243c04b83d0c",
+      "generation": 5,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261908,
+      "stage": "command",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "7b24bfe6-8977-4b0f-8599-243c04b83d0c",
+      "generation": 5,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261909,
+      "stage": "speech",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "7b24bfe6-8977-4b0f-8599-243c04b83d0c",
+      "generation": 5,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261916,
+      "stage": "playback",
+      "phase": "failed",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "7b24bfe6-8977-4b0f-8599-243c04b83d0c",
+      "durationMs": 6.799999982118607,
+      "bytes": 0,
+      "generation": 5,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689261916,
+      "stage": "client",
+      "phase": "failed",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "7b24bfe6-8977-4b0f-8599-243c04b83d0c",
+      "generation": 5,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689262565,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "6fea1c1a-f58b-491c-bd5c-686572edd452",
+      "generation": 6,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689267641,
+      "stage": "command",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "6fea1c1a-f58b-491c-bd5c-686572edd452",
+      "generation": 6,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689268164,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "e89d869f-19fe-49d2-92ea-49464dfe96a9",
+      "generation": 7,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689268571,
+      "stage": "command",
+      "phase": "start",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aa51e1cb-5fd3-4b46-89be-fa547235f4be",
+      "generation": 8,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    },
+    {
+      "at": 1794689269176,
+      "stage": "command",
+      "phase": "complete",
+      "clientId": "641fd6bb-ebab-4e81-b0db-7ab792b3b234",
+      "requestId": "aa51e1cb-5fd3-4b46-89be-fa547235f4be",
+      "generation": 8,
+      "os": "mac",
+      "browser": "Chrome/155.0.0.0"
+    }
+  ],
+  "finalAlerts": [],
+  "method": "Recorded test speech through browser MediaStream; real VM turn detector, BB transcription and Pocket voice; Web Audio destination RMS. No physical device claim."
+}

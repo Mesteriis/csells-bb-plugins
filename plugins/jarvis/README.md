@@ -15,8 +15,9 @@ Barging in interrupts speech so you can steer the conversation.
 Recently active means the last 72 hours, plus running/error/attention states.
 Briefings distinguish agent-reported outcomes from independent verification.
 One device owns the conversation at a time. Updates persist until played or
-interrupted; quiet mode retains changes. The transcript remains available if
-speech fails. Stale questions and uncertain answer deliveries are never retried
+interrupted; failed audio is marked separately and can be retried. Quiet mode retains changes. The transcript remains available if
+speech fails. Type instead supports chat, and Send answer binds a typed response
+to the exact displayed question without requiring successful audio playback. Stale questions and uncertain answer deliveries are never retried
 as new mutations automatically.
 
 ## Staging and development
@@ -34,23 +35,49 @@ Reload after changing settings.
 `relay/main.mjs` accepts a private JSON configuration outside the source tree:
 `sdkModule` (installed public bb-app entry), `owner`, `projectId`, `environmentId`,
 `providerId`, `journal`, `port`, fresh `token`, ISO `expiresAt`, `voiceBaseUrl`, and
-`voiceAdminKeyPath`. The host process inherits BB's account-pool URL/token;
-provider credentials are not copied to the VM. Pocket's admin key remains on its
+`voiceAdminKeyPath`. For supervision, set `poolBaseUrl` and `poolTokenPath`
+to the existing account-pool route and host-token JSON on the owning BB host.
+The token is read per request to honor rotation; it is not copied into config,
+launchd environment, logs or the VM. Inherited BB account-pool environment
+variables remain supported for development. Pocket's admin key remains on its
 owning host. `allowWatchedReplies` defaults false and must remain false until
 Chris authorizes directed replies to existing watched threads. Watching itself
 never grants write authority. All other mutations remain task-owned.
 
-One relay process owns the durable journal. Before removing a stale lock, verify
-its recorded PID has exited. The relay expires automatically. Keep its process
-supervised in task storage; restarting it requires the normal host BB model
-connection. The assistant journal is separate from the coordinator journal.
+One relay process owns the durable journal through its exclusive loopback port;
+journal access begins only after binding. No stale PID lock can prevent recovery.
+Run it under launchd with `RunAtLoad`, `KeepAlive: {SuccessfulExit: false}` and
+`ThrottleInterval: 5`, using an absolute Node path, task-owned source snapshot,
+private configuration, and `BB_SERVER_URL` for the owning host. A crash restarts;
+normal shutdown or credential expiry exits successfully without a restart loop.
+The assistant journal is separate from the coordinator journal.
 
 `turn/server.py` runs in the disposable VM on loopback 4843 using the pinned
 requirements and separately provisioned Smart Turn v3.2 CPU model. Set
 `JARVIS_TURN_MODEL` to that model. Expected SHA-256:
 `2bb026316b14a660486a75b1733cd3fbab8c2fd0314dc9af7be49f8cca967e4f`.
 Browser audio enters BB as bounded base64 JSON, is decoded server-side, and is
-never written to disk. Alfred output streams as 24 kHz signed 16-bit mono PCM.
+never written to disk. Alfred output is 24 kHz signed 16-bit mono PCM. The relay wraps each chunk with
+a four-byte big-endian length; a zero-length completion frame follows successful
+synthesis and lease release. The browser rejects EOF without that frame.
+
+## Voice diagnostics
+
+The UI separates Preparing audio from playback scheduling and reports failures.
+Retry audio resumes the audio context from a tap and repeats the current question
+or latest reply. Playback acknowledgement is bound to the owning device lease,
+delivery claim and conversational generation. It indicates browser completion,
+not proof of acoustic output through a physical speaker.
+
+Download diagnostics exports up to 200 browser events retained in local storage
+for the last day. Metadata is also forwarded to the relay; relay diagnostics keep
+at most 1,000 events in `<journal>.diagnostics`, filtered to the last day on read
+and rewritten on the next event. Records contain only allowed stage/status values,
+correlation IDs, durations/counts and browser/OS metadata. They exclude speech,
+transcripts, arbitrary error strings, URLs and credentials. The separate assistant
+journal still contains conversation text; these diagnostic limits do not establish
+its retention policy. Browser diagnostics remain exportable during relay outages.
+This is operational tracing, not a completed analytics/latency acceptance suite.
 
 ## Acceptance boundaries
 

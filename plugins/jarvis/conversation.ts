@@ -4,6 +4,7 @@ export interface Utterance {
   text: string;
   at: number;
   kind?: string;
+  playbackClaim?: string;
 }
 export interface ConversationState {
   watch: boolean;
@@ -21,6 +22,8 @@ export interface ConversationState {
     threadId: string;
     title: string;
     kind: string;
+    binding: string;
+    displayText: string;
     question?: string;
     payload?: unknown;
   } | null;

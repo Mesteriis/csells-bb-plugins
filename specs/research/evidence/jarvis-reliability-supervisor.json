@@ -1,0 +1,9 @@
+{
+  "at": 1794689058.767024,
+  "oldPid": 32567,
+  "newPid": 34188,
+  "restartMs": 771,
+  "taskCountAfterRestart": 4,
+  "supervisor": "launchd",
+  "agentSessionIndependent": true
+}

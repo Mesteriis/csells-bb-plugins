@@ -1,0 +1,2 @@
+{"probe":"typed answer without successful audio playback","sends":0,"response":"Let me read the current question first. Probe may need your answer: Which color should I use?"}
+{"probe":"interrupt during pre-send SDK read","sendsAfterInterrupt":1}

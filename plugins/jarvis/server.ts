@@ -46,11 +46,14 @@ export const rpcContract = defineRpcContract({
         "ack",
       ]),
       clientId: z.string().uuid(),
+      requestId: z.string().uuid().optional(),
       enabled: z.boolean().optional(),
       takeover: z.boolean().optional(),
       text: z.string().max(8000).optional(),
+      playbackClaim: z.string().uuid().optional(),
+      presentedQuestion: z.string().max(300).optional(),
       utteranceId: z.string().uuid().optional(),
-      status: z.enum(["played", "interrupted"]).optional(),
+      status: z.enum(["played", "interrupted", "failed"]).optional(),
     }),
     output: z.unknown(),
   },
@@ -149,6 +152,10 @@ export default async function plugin(bb: BbPluginApi) {
         headers: {
           "content-type": "application/json",
           authorization: `Bearer ${config.relayToken}`,
+          "x-jarvis-request":
+            typeof (input as { requestId?: string })?.requestId === "string"
+              ? (input as { requestId: string }).requestId
+              : "",
         },
         body: JSON.stringify(input ?? {}),
         signal: AbortSignal.any([abort.signal, AbortSignal.timeout(60000)]),
@@ -206,7 +213,7 @@ export default async function plugin(bb: BbPluginApi) {
       rpcContract.decide.output.parse(await call("decide", input)),
   });
   if (config.relayBaseUrl) {
-    for (const path of ["speech", "transcribe", "turn"] as const)
+    for (const path of ["speech", "transcribe", "turn", "diagnostics"] as const)
       bb.http.route(
         "POST",
         "/" + path,
@@ -216,7 +223,8 @@ export default async function plugin(bb: BbPluginApi) {
             return context.text("Audio or speech request is too large", 413);
           let bytes: Uint8Array;
           try {
-            if (path === "speech") bytes = new TextEncoder().encode(raw);
+            if (path === "speech" || path === "diagnostics")
+              bytes = new TextEncoder().encode(raw);
             else {
               const input = z
                 .object({
@@ -241,11 +249,13 @@ export default async function plugin(bb: BbPluginApi) {
               method: "POST",
               headers: {
                 "content-type":
-                  path === "speech"
+                  path === "speech" || path === "diagnostics"
                     ? "application/json"
                     : path === "turn"
                       ? "application/octet-stream"
                       : "audio/wav",
+                "x-jarvis-request":
+                  context.req.header("x-jarvis-request") ?? "",
                 "x-jarvis-client": context.req.header("x-jarvis-client") ?? "",
                 "x-jarvis-lease": context.req.header("x-jarvis-lease") ?? "",
                 ...(path === "turn"

@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
-import { timingSafeEqual } from "node:crypto";
+import { pcmFrame } from "../lib/pcm-stream.mjs";
+import { timingSafeEqual, randomUUID } from "node:crypto";
 
 export function createRelayServer({
   coordinator,
@@ -9,6 +10,7 @@ export function createRelayServer({
   token,
   expiresAt,
   now = Date.now,
+  diagnostics = { record: () => {}, snapshot: () => [] },
 }) {
   if (
     typeof token !== "string" ||
@@ -49,6 +51,32 @@ export function createRelayServer({
       if (req.headers.origin || req.method !== "POST")
         return reply(403, { error: "Server-to-server only" });
       const method = req.url?.slice(1);
+      const requestId = /^[a-f0-9-]{36}$/i.test(
+        req.headers["x-jarvis-request"] ?? "",
+      )
+        ? req.headers["x-jarvis-request"]
+        : randomUUID();
+      const started = now();
+      const stage = ["speech", "transcribe"].includes(method)
+        ? method
+        : "command";
+      const record = (phase, extra = {}) =>
+        diagnostics.record({
+          stage,
+          phase,
+          requestId,
+          clientId: req.headers["x-jarvis-client"],
+          durationMs: now() - started,
+          ...extra,
+        });
+      if (method !== "diagnostics") {
+        record("start");
+        res.on("finish", () =>
+          record(res.statusCode >= 400 ? "failed" : "complete", {
+            httpStatus: res.statusCode,
+          }),
+        );
+      }
       if (method === "transcribe" && voice) {
         try {
           const ownership = director.mediaSignal(
@@ -81,7 +109,8 @@ export function createRelayServer({
         return reply(403, { error: "JSON required" });
       if (
         (method === "assistant" && director) ||
-        (method === "speech" && voice)
+        (method === "speech" && voice) ||
+        method === "diagnostics"
       ) {
         try {
           let size = 0;
@@ -92,6 +121,12 @@ export function createRelayServer({
             chunks.push(chunk);
           }
           const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+          if (method === "diagnostics") {
+            if (!Array.isArray(input.events) || input.events.length > 30)
+              return reply(400, { error: "Invalid diagnostic batch" });
+            for (const event of input.events) diagnostics.record(event);
+            return reply(200, { accepted: true });
+          }
           if (method === "assistant")
             return reply(200, await director.command(input));
           if (!input || Object.keys(input).some((k) => k !== "text"))
@@ -109,25 +144,32 @@ export function createRelayServer({
           const audio = await voice.speech(input.text, controller.signal);
           try {
             res.writeHead(200, {
-              "content-type": "audio/pcm",
+              "content-type": "application/x-jarvis-pcm",
               "x-audio-sample-rate": "24000",
               "cache-control": "no-store",
             });
+            let bytes = 0;
             for await (const chunk of audio.body) {
-              if (controller.signal.aborted) break;
-              if (!res.write(chunk))
+              controller.signal.throwIfAborted();
+              if (!bytes) record("first-byte");
+              bytes += chunk.length;
+              if (!res.write(pcmFrame(chunk)))
                 await once(res, "drain", { signal: controller.signal });
             }
-            res.end();
+            controller.signal.throwIfAborted();
+            record("ready", { bytes });
           } finally {
             await audio.release();
           }
+          controller.signal.throwIfAborted();
+          res.end(pcmFrame(new Uint8Array(0)));
         } catch (e) {
+          record("failed");
           if (!res.headersSent)
             reply(503, {
               error: e instanceof Error ? e.message : "Assistant unavailable",
             });
-          else res.end();
+          else res.destroy();
         }
         return;
       }

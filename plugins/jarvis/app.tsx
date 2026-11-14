@@ -29,13 +29,15 @@ function Jarvis() {
     ? "Listening to you"
     : view.speaking
       ? "Speaking"
-      : view.thinking
-        ? "Thinking"
-        : view.listening
-          ? "Listening"
-          : view.active
-            ? "Ready · microphone off"
-            : "Ready when you are";
+      : view.preparingAudio
+        ? "Preparing audio"
+        : view.thinking
+          ? "Thinking"
+          : view.listening
+            ? "Listening"
+            : view.active
+              ? "Ready · microphone off"
+              : "Ready when you are";
   const mode = view.hearing
     ? "hearing"
     : view.speaking
@@ -131,6 +133,17 @@ function Jarvis() {
           {view.error}
         </p>
       )}
+      {view.error && view.caption && (
+        <button className={button} onClick={() => void voice.retryAudio()}>
+          Retry audio
+        </button>
+      )}
+      <button
+        className="text-sm underline"
+        onClick={() => voice.exportDiagnostics()}
+      >
+        Download diagnostics
+      </button>
       {view.transcript && (
         <p className="rounded-xl bg-muted p-4">
           <span className="font-medium">You: </span>
@@ -155,6 +168,7 @@ function Jarvis() {
               ? "Say “approve once” or “deny” for this action."
               : "Your next answer goes to this question."}
           </p>
+          <p className="mt-3">{view.state.focus.displayText}</p>
           <details className="mt-3">
             <summary>Question details</summary>
             <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-sm">
@@ -173,7 +187,16 @@ function Jarvis() {
           onSubmit={(e) => {
             e.preventDefault();
             if (draft.trim()) {
-              void voice.act("talk", { text: draft });
+              void voice.act(
+                "talk",
+                {
+                  text: draft,
+                  ...(view.state?.focus
+                    ? { presentedQuestion: view.state.focus.binding }
+                    : {}),
+                },
+                false,
+              );
               setDraft("");
             }
           }}
@@ -186,6 +209,28 @@ function Jarvis() {
             placeholder="Talk to Jarvis…"
           />
           <button className={button}>Send</button>
+          {view.state?.focus && (
+            <button
+              type="button"
+              className={button}
+              disabled={!draft.trim()}
+              onClick={() => {
+                void voice.act(
+                  "answer",
+                  {
+                    text: draft,
+                    ...(view.state?.focus
+                      ? { presentedQuestion: view.state.focus.binding }
+                      : {}),
+                  },
+                  false,
+                );
+                setDraft("");
+              }}
+            >
+              Send answer
+            </button>
+          )}
         </form>
       </details>
       {view.state?.coverage && (

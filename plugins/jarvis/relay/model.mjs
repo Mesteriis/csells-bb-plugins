@@ -12,7 +12,7 @@ export function createTalker({ baseUrl, token, model = "gpt-6.1-sol" }) {
         AbortSignal.timeout(45000),
       ]),
       headers: {
-        authorization: `Bearer ${token}`,
+        authorization: `Bearer ${typeof token === "function" ? token() : token}`,
         "content-type": "application/json",
       },
       body: JSON.stringify({

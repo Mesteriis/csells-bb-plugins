@@ -55,9 +55,21 @@ function fixture({
     createDirector({ sdk, store, coordinator, model, allowWatchedReplies });
   const d = make();
   const command = (action, extra = {}) =>
-    d.command({ action, clientId, ...extra });
+    d.command({
+      action,
+      clientId,
+      ...(action === "ack"
+        ? {
+            playbackClaim:
+              saved.deliveries[extra.utteranceId]?.item.playbackClaim,
+          }
+        : {}),
+      ...extra,
+    });
   return {
     d,
+    sdk,
+    store,
     command,
     make,
     calls,
@@ -152,6 +164,7 @@ test("unheard updates survive process restart and complete only on playback ack"
     action: "ack",
     clientId,
     utteranceId: replay.utterance.id,
+    playbackClaim: replay.utterance.playbackClaim,
     status: "played",
   });
   assert.equal(
@@ -274,4 +287,87 @@ test("explicitly enabled watched replies retain exact-question checks", async ()
   await f.command("ack", { utteranceId: q.utterance.id, status: "played" });
   await f.command("answer", { text: "Use blue" });
   assert.equal(f.calls.length, 1);
+});
+
+test("typed answer binds the displayed question without requiring audio", async () => {
+  const f = fixture();
+  await f.command("start");
+  const q = await f.command("questions");
+  await f.command("answer", {
+    text: "Blue",
+    presentedQuestion: q.utterance.focusBinding,
+  });
+  assert.equal(f.calls.length, 1);
+});
+test("stale displayed question never authorizes a typed answer", async () => {
+  const f = fixture();
+  await f.command("start");
+  const q = await f.command("questions");
+  f.change();
+  await f.command("questions");
+  await assert.rejects(
+    f.command("answer", {
+      text: "Blue",
+      presentedQuestion: q.utterance.focusBinding,
+    }),
+    /changed/,
+  );
+  assert.equal(f.calls.length, 0);
+});
+test("interrupt during answer validation fences the unsent mutation", async () => {
+  const f = fixture();
+  await f.command("start");
+  const q = await f.command("questions");
+  await f.command("ack", { utteranceId: q.utterance.id, status: "played" });
+  let release, entered;
+  const ready = new Promise((r) => (entered = r));
+  f.sdk.threads.get = async () => {
+    entered();
+    await new Promise((r) => (release = r));
+    return f.row;
+  };
+  const answer = f.command("answer", { text: "Blue" });
+  await ready;
+  await f.command("interrupt");
+  release();
+  await assert.rejects(answer, /superseded/);
+  assert.equal(f.calls.length, 0);
+});
+
+test("old playback cannot authorize an answer after interruption", async () => {
+  const f = fixture();
+  await f.command("start");
+  const q = await f.command("questions");
+  await f.command("interrupt");
+  await assert.rejects(
+    f.command("ack", { utteranceId: q.utterance.id, status: "played" }),
+    /superseded/,
+  );
+  const result = await f.command("answer", { text: "Blue" });
+  assert.match(result.utterance.text, /read the current question/);
+  assert.equal(f.calls.length, 0);
+});
+
+test("interrupt during decision persistence leaves no mutation or uncertain receipt", async () => {
+  const f = fixture();
+  await f.command("start");
+  const q = await f.command("questions");
+  await f.command("ack", { utteranceId: q.utterance.id, status: "played" });
+  let release, entered;
+  const ready = new Promise((r) => (entered = r));
+  const write = f.store.write;
+  f.store.write = async (state) => {
+    await write(state);
+    if (Object.keys(state.decisions).length) {
+      entered();
+      await new Promise((r) => (release = r));
+    }
+  };
+  const answer = f.command("answer", { text: "Blue" });
+  await ready;
+  await f.command("interrupt");
+  release();
+  await assert.rejects(answer, /superseded/);
+  assert.equal(f.calls.length, 0);
+  assert.deepEqual(f.saved().decisions, {});
 });
