@@ -82,59 +82,28 @@ and never escalated, because a version you set deliberately should mean what it
 says. `bb read-aloud status` reports which version is live and whether it was
 negotiated or pinned.
 
-**Chunked into short turns, synthesized concurrently.** The service will stream
-a whole message in one request: bytes per character stay flat at ~362 from 1K
-to 12K characters, so nothing is capped or dropped. Throughput is the problem,
-and it is nowhere near the ~4.75x realtime this once claimed. Measured end to
-end through this route, one turn at a time delivered 274s of audio in 297s of
-wall clock — **0.92x realtime, slower than it plays**, in 62 bursts separated
-by gaps of up to 7 seconds.
+**Verified, retryable chunks.** Text is split at sentence boundaries. Each
+chunk must receive audio and the speech protocol's `turn.end` marker before
+any of its bytes are released. Interrupted or empty turns are discarded and
+retried with backoff for up to three attempts; an exhausted chunk returns a visible error.
 
-That is the whole bug behind a read that stalls at a fixed point and never
-resumes. No prebuffer survives sub-realtime delivery: the client's head start
-is spent at a constant rate, and once it is gone playback starves for good.
+`POST /prepare` returns a read ID and chunk count. `GET /chunk?id=...&index=...`
+returns a complete MP3 chunk with a content length. Downloads run with bounded
+look-ahead and are consumed in order. A failed network download retries the
+same chunk, reusing the server's verified audio without repeating synthesis.
+`DELETE /job?id=...` aborts synthesis and releases the retained audio. Abandoned
+reads expire after ten minutes without a chunk request.
 
-So the text is split at sentence boundaries and several turns are synthesized
-at once, their MP3s concatenated in order. MP3 frames are self-delimiting, so
-this needs no stitching and leaves no per-part headers to strip; the client
-sees one continuous response and starts playing on the first chunk. Three turns
-in flight took the same measurement to **4.07x realtime with 21 gaps**, which
-is the headroom the design always assumed it had.
+**Playback uses MediaSource** for seeking through received audio. It waits for
+15 seconds of audio, scaled by playback speed, or the whole message if shorter.
+If delivery falls behind, playback pauses to rebuild that cushion and resumes
+automatically. User pause remains paused. Failures remain visible rather than
+being overwritten by later media events. Engines without MP3 MediaSource wait
+for a complete file, then play a seekable blob.
 
-The first chunks are deliberately small (150, then 300 characters, then 400).
-Look-ahead buys nothing until the chunk being drained runs out, so a full-size
-first chunk would leave the opening minute at ~1x with no lead — the window
-where a stall is likeliest. Starting small hands over to an already-buffered
-chunk within seconds.
-
-A turn that fails is retried while nothing of it has reached the client, which
-buffering ahead makes the common case; a turn that fails after bytes are
-downstream is raised rather than swallowed, costing that chunk instead of the
-rest of the message.
-
-One measurement trap worth recording: re-reading the *same* text returns at
-~112x realtime with a byte-identical body. That is the service serving a cached
-synthesis, not a fix working. Benchmark with fresh wording every time.
-
-**Two routes, not one.** `POST /prepare` takes the message text and returns a
-job id; `GET /stream?id=` returns `audio/mpeg`. A single GET would be simpler,
-but message text runs to tens of thousands of characters and would not survive
-a URL.
-
-**Stop genuinely cancels.** Stopping aborts the request, which runs the
-stream's `cancel()` and closes the synthesis socket. Stopping a twelve-minute
-read costs nothing instead of letting it finish unheard.
-
-**Playback goes through MediaSource,** which exists entirely for seeking.
-Pointed straight at a chunked response the browser treats it as live: it
-throttles reads to ~2s ahead of the playhead and reports `seekable` as
-`[0, Infinity]`, so a 10-second jump either moves about two seconds or sails
-past the received audio and resets to zero. Appending every byte as it arrives
-makes `buffered` mean what it says — measured 36s of lead versus 2.3s — so a
-jump lands exactly and the true edge is knowable. Seeks clamp to that edge;
-landing on it starves playback, which surfaces as the "Preparing" state until
-more audio arrives. Engines without MSE for mp3 fall back to direct streaming,
-where playback works but jumps are smaller.
+**Stop cancels connecting and active speech sockets.** New reads and Stop also
+cancel pending downloads, MediaSource waits and appends. A stale response cannot
+start playback or overwrite a newer read.
 
 **Markdown is flattened first.** Raw markdown through a TTS engine says "hash
 hash Loose ends" and spells out URLs character by character. Links reduce to
@@ -185,8 +154,8 @@ drops its text label first on narrow screens so the controls always fit.
   need a code change, as it would for every client.
 - Voice catalog only — no cloning, and no control over the 24kHz/48kbps output
   format.
-- Without MSE for mp3, ±10s jumps are limited by how little the browser
-  buffers ahead.
+- Without MP3 MediaSource, playback starts only after the complete message downloads.
+- Network or speech-provider outages can still prevent reading; failures are shown explicitly.
 
 ## Selection reading
 

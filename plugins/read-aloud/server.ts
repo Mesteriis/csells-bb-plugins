@@ -1,18 +1,8 @@
 // bb-plugin-read-aloud — backend entry.
 //
-// Streams neural TTS audio for a chat message. Two routes, deliberately:
-//
-//   POST /prepare  { text }  -> { id }
-//   GET  /stream?id=<id>     -> audio/mpeg, streamed
-//
-// A single GET would be simpler, but message text runs to tens of thousands of
-// characters and would not survive a URL. The frontend POSTs the text, gets a
-// short-lived job id, then points playback at /stream. That matters for more
-// than size: streaming the response is what makes playback start in ~1.5s
-// instead of after a full synthesis. Aborting the request runs the stream's
-// cancel() below and closes the synthesis socket mid-sentence.
-//
-// Synthesis is native (see synth.ts) — no Python, no external binary.
+// Prepare speakable text, serve validated retryable audio chunks, and release
+// the read on completion or cancellation. Synthesis uses the native protocol.
+import { AudioJob } from "./audio-job";
 import { randomUUID } from "node:crypto";
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
@@ -26,57 +16,11 @@ import {
 /** Frontend listens on this and stops playback. */
 const STOP_CHANNEL = "read-aloud/stop";
 
-interface Job {
-  text: string;
-  createdAt: number;
-}
-
 const JOB_TTL_MS = 10 * 60_000;
 const MAX_JOBS = 32;
 
-/**
- * Characters of speakable text per synthesis turn — roughly a minute of audio.
- *
- * One turn for the whole message was the original design, on the measurement
- * that synthesis runs several times faster than playback. Re-measured against
- * the live endpoint, throughput is far less dependable than that: 1000 chars
- * came back at 1.31x realtime, 5000 at 0.99x, 12000 at 1.75x. At ~1x a long
- * message means a socket held open for the entire read, and a drop anywhere in
- * it loses every remaining word.
- *
- * Short turns bound that exposure: a failure costs one chunk instead of the
- * tail of the message, and a chunk that fails before emitting anything can be
- * retried transparently.
- */
 const CHUNK_TARGET_CHARS = 400;
-/**
- * Sizes for the first chunks, so the pipeline's lead arrives early.
- *
- * Look-ahead only helps once the chunk being drained runs out: until then the
- * client is fed at whatever one turn produces, around realtime. A full-size
- * first chunk therefore leaves the opening minute with no lead at all, against
- * measured 3-6 second gaps and a 4 second cushion — the exact window where a
- * stall is most likely. Starting small hands over to an already-buffered chunk
- * within seconds, and reaches first audio sooner besides.
- */
 const CHUNK_RAMP_CHARS = [150, 300];
-/** Attempts per chunk, while no audio from it has gone downstream yet. */
-const CHUNK_ATTEMPTS = 3;
-/**
- * Chunks synthesized concurrently, including the one being sent.
- *
- * This is not just about covering the handshake at a seam. Measured end to end
- * through this route, a single turn at a time delivers 274s of audio in 297s
- * of wall clock — 0.92x realtime, slower than it plays. No cushion survives
- * that: once the client's head start is spent, playback starves and stays
- * starved, which is the fixed-point stall this fixes.
- *
- * Concurrency is what buys headroom back. Three turns in flight puts aggregate
- * throughput comfortably above realtime, so the lead grows instead of eroding.
- * The cost is memory: at ~360 bytes per character a buffered chunk is roughly
- * 320KB, so this bounds it at about 1MB per active read.
- */
-const CHUNK_LOOKAHEAD = 3;
 
 export const rpcContract = defineRpcContract({
   status: {
@@ -346,9 +290,7 @@ export function chunkForSynthesis(
 
 /** Pulls just enough of a synthesis to prove the handshake works. */
 async function probeSynthesis(voice: string, rate: string): Promise<void> {
-  for await (const chunk of synthesize({ text: "ok", voice, rate })) {
-    if (chunk.length > 0) return;
-  }
+  for await (const chunk of synthesize({ text: "ok", voice, rate })) { if (chunk.length === 0) throw new Error("Empty speech frame"); }
 }
 
 export default async function plugin(bb: BbPluginApi) {
@@ -399,20 +341,23 @@ export default async function plugin(bb: BbPluginApi) {
     },
   });
 
-  const jobs = new Map<string, Job>();
+  const jobs = new Map<string, AudioJob>();
 
   function sweepJobs(): void {
     const cutoff = Date.now() - JOB_TTL_MS;
-    for (const [id, job] of jobs) if (job.createdAt < cutoff) jobs.delete(id);
+    for (const [id, job] of jobs) if (job.lastUsedAt < cutoff) { job.dispose(); jobs.delete(id); }
     // Hard cap, oldest first, so a client that never plays cannot grow this.
     while (jobs.size > MAX_JOBS) {
       const oldest = [...jobs.entries()].sort(
         (a, b) => a[1].createdAt - b[1].createdAt,
       )[0];
       if (oldest === undefined) break;
+      oldest[1].dispose();
       jobs.delete(oldest[0]);
     }
   }
+
+  const expirationTimer = setInterval(sweepJobs, 60_000);
 
   bb.rpc.register(rpcContract, {
     status: async () => {
@@ -457,179 +402,52 @@ export default async function plugin(bb: BbPluginApi) {
 
       sweepJobs();
       const id = randomUUID();
-      jobs.set(id, { text, createdAt: Date.now() });
-      return context.json({ id, characters: text.length });
-    },
-    { auth: "local" },
-  );
-
-  bb.http.route(
-    "GET",
-    "/stream",
-    async (context) => {
-      const id = context.req.query("id") ?? "";
-      const job = jobs.get(id);
-      if (job === undefined) return context.text("unknown or expired job", 404);
-
       const { voice, rate } = await settings.get();
-
-      // The job is single-use: replaying re-prepares. Keeps the map small and
-      // makes a stale id fail loudly instead of re-synthesizing on a stray GET.
-      jobs.delete(id);
-
-      // One synthesis turn per chunk, concatenated into a single MP3 stream.
-      // MP3 frames are self-delimiting, so appending turns end to end needs no
-      // stitching and produces no per-part headers to strip. The client still
-      // sees one continuous response and starts playing on the first chunk.
-      const controller = new AbortController();
-      const chunks = chunkForSynthesis(job.text);
-
-      /**
-       * Starts one chunk's synthesis immediately, buffering its bytes until a
-       * consumer drains them.
-       *
-       * Synthesizing strictly one chunk at a time leaves dead air at every
-       * boundary — a fresh socket, handshake and turn setup, during which no
-       * audio is produced at all. Since throughput is only around realtime,
-       * that gap is never made back: the client's cushion loses a second or so
-       * per boundary and, a few chunks in, is gone for good. Playback then
-       * starves at a fixed point and stays there. Starting the next chunks
-       * ahead of the one being sent keeps the pipe full across the seam.
-       *
-       * Buffering also widens what can be retried. A chunk nobody has begun
-       * draining has sent nothing downstream, so a failure can be retried by
-       * discarding what it produced; only once bytes are on their way to the
-       * client does a retry risk repeating audio.
-       */
-      const startChunk = (text: string) => {
-        let queued: Uint8Array[] = [];
-        let finished = false;
-        let failure: Error | null = null;
-        let consumed = false;
-        let wake: (() => void) | null = null;
-        const notify = () => {
-          wake?.();
-          wake = null;
-        };
-
-        const run = async (): Promise<void> => {
-          let last: unknown = null;
-          for (let attempt = 1; attempt <= CHUNK_ATTEMPTS; attempt += 1) {
-            try {
-              for await (const bytes of synthesize({
-                text,
-                voice,
-                rate,
-                signal: controller.signal,
-              })) {
-                if (controller.signal.aborted) return;
-                queued.push(bytes);
-                notify();
-              }
-              return;
-            } catch (cause) {
-              last = cause;
-              if (consumed || controller.signal.aborted) throw cause;
-              // Nothing has left for the client, so this attempt can be
-              // discarded wholesale rather than replayed on top of itself.
-              queued = [];
-              bb.log.warn(
-                `chunk attempt ${attempt}/${CHUNK_ATTEMPTS} failed: ` +
-                  (cause instanceof Error ? cause.message : String(cause)),
-              );
-            }
-          }
-          throw last instanceof Error ? last : new Error("synthesis failed");
-        };
-
-        void run().then(
-          () => {
-            finished = true;
-            notify();
-          },
-          (cause: unknown) => {
-            failure = cause instanceof Error ? cause : new Error(String(cause));
-            finished = true;
-            notify();
-          },
-        );
-
-        return async function* drain(): AsyncGenerator<Uint8Array> {
-          for (;;) {
-            while (queued.length > 0) {
-              const bytes = queued.shift();
-              if (bytes !== undefined) {
-                consumed = true;
-                yield bytes;
-              }
-            }
-            if (failure !== null) throw failure;
-            if (finished) return;
-            await new Promise<void>((resolve) => {
-              wake = resolve;
-            });
-          }
-        };
-      };
-
-      const stream = new ReadableStream<Uint8Array>({
-        async start(sink) {
-          try {
-            const running: ReturnType<typeof startChunk>[] = [];
-            let next = 0;
-            const fill = () => {
-              while (running.length < CHUNK_LOOKAHEAD && next < chunks.length) {
-                running.push(startChunk(chunks[next] ?? ""));
-                next += 1;
-              }
-            };
-            // Read through a call so control-flow analysis cannot narrow it to
-            // a constant: it flips on another turn of the loop, not this one.
-            const aborted = () => controller.signal.aborted;
-            fill();
-
-            for (let index = 0; running.length > 0; index += 1) {
-              if (aborted()) break;
-              const drain = running.shift();
-              // Refill before draining, so the chunk after this one is already
-              // being synthesized while this one is still going out.
-              fill();
-              if (drain === undefined) break;
-              for await (const bytes of drain()) {
-                if (aborted()) break;
-                sink.enqueue(bytes);
-              }
-              bb.log.debug(`chunk ${index + 1}/${chunks.length} sent`);
-            }
-            if (!controller.signal.aborted) sink.close();
-          } catch (cause) {
-            bb.log.error(
-              `synthesis failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            );
-            try {
-              sink.error(cause);
-            } catch {
-              // Already closed or errored.
-            }
-          }
-        },
-        // Stop aborts this response. Closing the socket is what makes stopping
-        // free rather than letting a twelve minute synthesis finish unheard.
-        cancel() {
-          controller.abort();
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "audio/mpeg",
-          "Cache-Control": "no-store",
-          "X-Accel-Buffering": "no",
-        },
-      });
+      const job = new AudioJob(chunkForSynthesis(text),
+        (text, signal) => synthesize({ text, voice, rate, signal }),
+        (message) => { bb.log.warn(`read ${id}: ${message}`); });
+      jobs.set(id, job);
+      sweepJobs();
+      bb.log.info(`read ${id}: prepared ${job.texts.length} chunks, ${text.length} characters`);
+      return context.json({ id, characters: text.length, chunks: job.texts.length });
     },
     { auth: "local" },
   );
+
+  bb.http.route("GET", "/chunk", async (context) => {
+    sweepJobs();
+    const id = context.req.query("id") ?? "";
+    const job = jobs.get(id);
+    if (job === undefined) return context.json({ error: "Read expired; start read aloud again." }, 404);
+    const raw = context.req.query("index");
+    const index = raw === undefined || raw === "" ? NaN : Number(raw);
+    if (!Number.isInteger(index) || index < 0 || index >= job.texts.length) {
+      return context.json({ error: "Invalid audio chunk index" }, 400);
+    }
+    try {
+      const bytes = await job.chunk(index);
+      bb.log.info(`read ${id}: verified chunk ${index + 1}/${job.texts.length}, ${bytes.length} bytes`);
+      return new Response(bytes as Uint8Array<ArrayBuffer>, { headers: {
+        "Content-Type": "audio/mpeg", "Content-Length": String(bytes.length), "Cache-Control": "no-store",
+      } });
+    } catch (cause) {
+      if (job.controller.signal.aborted) {
+        bb.log.info(`read ${id}: chunk ${index + 1} cancelled`);
+        return context.json({ error: "Read cancelled" }, 410);
+      }
+      const error = cause instanceof Error ? cause.message : String(cause);
+      bb.log.error(`read ${id}: ${error}`);
+      return context.json({ error }, 502);
+    }
+  }, { auth: "local" });
+
+  bb.http.route("DELETE", "/job", (context) => {
+    const id = context.req.query("id") ?? "";
+    jobs.get(id)?.dispose();
+    jobs.delete(id);
+    bb.log.info(`read ${id}: released`);
+    return context.json({ released: true });
+  }, { auth: "local" });
 
   // Auto-stop when the user sends a new prompt. Doing this server-side covers
   // every composer surface and layout, which a frontend-only submit hook would
@@ -719,6 +537,8 @@ export default async function plugin(bb: BbPluginApi) {
   });
 
   bb.onDispose(() => {
+    clearInterval(expirationTimer);
+    for (const job of jobs.values()) job.dispose();
     jobs.clear();
   });
 }

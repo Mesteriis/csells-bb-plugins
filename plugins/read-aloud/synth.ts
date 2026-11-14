@@ -152,28 +152,36 @@ function localeOf(voice: string): string {
 }
 
 /** Resolves once the socket is open, rejects if the handshake is refused. */
-function openSocket(version: string): Promise<WebSocket> {
+function openSocket(version: string, signal?: AbortSignal): Promise<WebSocket> {
+  signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const url =
       `wss://${BASE}/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}` +
       `&${authQuery(version)}&ConnectionId=${randomUUID().replace(/-/g, "")}`;
     const socket = new WebSocket(url, { headers: handshakeHeaders(version) });
     socket.binaryType = "nodebuffer";
-    const onOpen = () => {
-      socket.off("error", onError);
-      resolve(socket);
-    };
-    const onError = (cause: Error) => {
+    const cleanup = () => {
       socket.off("open", onOpen);
-      try {
-        socket.close();
-      } catch {
-        // Already closing.
-      }
+      socket.off("error", onError);
+      socket.off("close", onClose);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const fail = (cause: Error) => {
+      cleanup();
+      // ws emits an error asynchronously when a connecting socket terminates.
+      socket.once("error", () => { /* expected termination error; original cause is rejected below */ });
+      socket.terminate();
       reject(cause);
     };
+    const onOpen = () => { cleanup(); resolve(socket); };
+    const onError = (cause: Error) => { fail(cause); };
+    const onClose = (code: number) => { fail(new Error(`Speech handshake closed (${code})`)); };
+    const onAbort = () => { fail(new DOMException("Speech request aborted", "AbortError")); };
     socket.once("open", onOpen);
     socket.once("error", onError);
+    socket.once("close", onClose);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    if (signal?.aborted) onAbort();
   });
 }
 
@@ -181,12 +189,12 @@ function openSocket(version: string): Promise<WebSocket> {
  * Opens a socket, escalating the client version if the handshake is refused,
  * and remembers whichever version worked.
  */
-async function connect(): Promise<WebSocket> {
+async function connect(signal?: AbortSignal): Promise<WebSocket> {
   const candidates = candidateVersions();
   let last: Error | null = null;
   for (const version of candidates) {
     try {
-      const socket = await openSocket(version);
+      const socket = await openSocket(version, signal);
       if (version !== learnedVersion) {
         learnedVersion = version;
         // Only worth persisting when it differs from the shipped default.
@@ -194,6 +202,7 @@ async function connect(): Promise<WebSocket> {
       }
       return socket;
     } catch (cause) {
+      signal?.throwIfAborted();
       last = cause instanceof Error ? cause : new Error(String(cause));
     }
   }
@@ -223,15 +232,17 @@ export async function* synthesize(
   const { text, voice, rate = "", signal } = options;
   if (text.trim() === "") return;
 
-  const socket = await connect();
+  const socket = await connect(signal);
   if (signal?.aborted === true) {
     socket.close();
-    return;
+    signal.throwIfAborted();
   }
 
   // Bridge push-based socket events into pull-based iteration.
   const queue: Uint8Array[] = [];
   const done = { current: false };
+  let completed = false;
+  let audioBytes = 0;
   const failure: { current: Error | null } = { current: null };
   let wake: (() => void) | null = null;
   const notify = () => {
@@ -259,13 +270,17 @@ export async function* synthesize(
       const headers = data.subarray(2, 2 + headerLength).toString("utf8");
       if (headers.includes("Path:audio")) {
         const audio = data.subarray(2 + headerLength);
-        if (audio.length > 0) queue.push(new Uint8Array(audio));
+        if (audio.length > 0) {
+          audioBytes += audio.length;
+          queue.push(new Uint8Array(audio));
+        }
         notify();
       }
       return;
     }
     // Text frames carry turn.start / response / turn.end.
     if (data.toString("utf8").includes("Path:turn.end")) {
+      completed = true;
       done.current = true;
       try {
         socket.close();
@@ -281,7 +296,10 @@ export async function* synthesize(
     done.current = true;
     notify();
   });
-  socket.on("close", () => {
+  socket.on("close", (code: number, reason: Buffer) => {
+    if (!completed && failure.current === null) {
+      failure.current = new Error(`Speech connection closed (${code}: ${reason.toString()}) before turn.end`);
+    }
     done.current = true;
     notify();
   });
@@ -335,9 +353,10 @@ export async function* synthesize(
       const chunk = queue.shift();
       if (chunk !== undefined) yield chunk;
     }
-    if (failure.current !== null && failure.current.message !== "aborted") {
+    if (failure.current !== null) {
       throw failure.current;
     }
+    if (audioBytes === 0) throw new Error("Speech completed with no audio");
   } finally {
     signal?.removeEventListener("abort", abort);
     try {

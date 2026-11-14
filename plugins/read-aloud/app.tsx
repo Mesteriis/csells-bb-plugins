@@ -10,6 +10,7 @@
 // component, so it cannot draw transport siblings of itself. Hence the split,
 // and hence the module-level store below — `run` fires outside React and has to
 // reach the overlay, which may mount, unmount, and remount underneath it.
+import { downloadChunks } from "./download";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
@@ -27,36 +28,7 @@ const PLUGIN_ROUTE = "/api/v1/plugins/read-aloud/http";
 const STOP_CHANNEL = "read-aloud/stop";
 const SEEK_SECONDS = 10;
 
-/**
- * Bytes per second of the 24kHz/48kbps stream the server produces, used to turn
- * a buffer target in seconds into a byte count.
- */
-const STREAM_BYTES_PER_SECOND = 6000;
-/**
- * Seconds of audio to hold before playback starts. Playing from the first
- * appended bytes is fine on localhost and stutters over a tunnel to a phone:
- * the buffer starts at zero, so the first jitter starves it.
- *
- * Measured against a stream that hesitates for 4s right after connecting:
- * with no cushion, playback starves once for 1.8s of dead silence
- * mid-sentence; with this cushion, it does not starve at all. The trade is
- * startup latency — synthesis outruns playback by roughly 4.75x, so at 1.5x
- * speed this delays first audio by about 1.3s. Silence up front reads as
- * loading; silence mid-sentence reads as broken.
- */
-const PREBUFFER_SECONDS = 4;
-/**
- * The service sends small frames. Appending each one individually means an
- * updateend round-trip per frame, and appendBuffer runs on the main thread —
- * exactly the thread that must stay free to keep the media pipeline fed.
- * Coalescing cuts that churn by roughly an order of magnitude.
- */
-const APPEND_FLUSH_BYTES = 8192;
-/**
- * Age at which a partial batch is appended anyway. Bounds how long audio can
- * sit in hand while the buffer runs down waiting for a batch to fill.
- */
-const APPEND_FLUSH_MS = 200;
+const PREBUFFER_SECONDS = 15;
 
 /**
  * Playback speed lives in localStorage, not plugin settings. Plugin settings
@@ -168,24 +140,29 @@ function ensureAudio(): HTMLAudioElement {
   };
 
   element.addEventListener("playing", () => {
-    setState({ status: "playing", error: null });
+    if (!playbackFailed) setState({ status: "playing", error: null });
   });
   element.addEventListener("pause", () => {
     // Clearing src to stop also fires "pause". Only a pause on a still-loaded
     // element is a real pause; otherwise stop() already set the state.
-    if (element.getAttribute("src") !== null && !element.ended) {
+    if (element.getAttribute("src") !== null && !element.ended && !automaticallyBuffering && !playbackFailed) {
       setState({ status: "paused" });
     }
   });
   element.addEventListener("ended", () => {
-    stop();
+    if (downloadComplete && !playbackFailed) stop();
+    else if (!playbackFailed) failPlayback(new Error("Audio ended before the full message arrived."));
   });
   // Starved mid-stream. Distinct from a user pause (paused stays false) and
   // from the initial load, so only promote an already-running playback —
   // "waiting" also fires before the first frame and right after a seek.
   const onStarved = () => {
     if (element.getAttribute("src") === null) return;
-    if (getState().status === "playing") setState({ status: "buffering" });
+    if (!downloadComplete && getState().status === "playing") {
+      automaticallyBuffering = true;
+      element.pause();
+      setState({ status: "buffering" });
+    }
   };
   element.addEventListener("waiting", onStarved);
   element.addEventListener("stalled", onStarved);
@@ -193,10 +170,7 @@ function ensureAudio(): HTMLAudioElement {
   element.addEventListener("error", () => {
     // A cleared src reports MEDIA_ELEMENT_ERROR; that is our own teardown.
     if (element.getAttribute("src") === null) return;
-    setState({
-      status: "error",
-      error: "Playback failed. Check `bb read-aloud status`.",
-    });
+    failPlayback(new Error(element.error?.message ?? "Audio playback failed."));
   });
   audio = element;
   return element;
@@ -204,6 +178,10 @@ function ensureAudio(): HTMLAudioElement {
 
 /** Aborts the in-flight synthesis request. */
 let inFlight: AbortController | null = null;
+let activeJob: string | null = null;
+let downloadComplete = false;
+let automaticallyBuffering = false;
+let playbackFailed = false;
 /** Object URL backing the MediaSource, revoked on stop. */
 let objectUrl: string | null = null;
 
@@ -214,152 +192,104 @@ function canUseMediaSource(): boolean {
   );
 }
 
-/**
- * Feeds the response into a MediaSource instead of assigning it as src.
- *
- * This exists for seeking. Pointed straight at a chunked response the browser
- * treats it as live: it throttles reads to ~2s ahead of the playhead and
- * reports `seekable` as [0, Infinity], so a 10-second jump either moves about
- * two seconds or sails past the received audio and resets to zero. Appending
- * every byte we receive makes `buffered` mean what it says — and since
- * synthesis runs several times faster than playback, it runs far ahead — so a
- * jump lands exactly and the true edge is knowable.
- */
+function releaseJob(id: string): void {
+  void fetch(`${PLUGIN_ROUTE}/job?id=${encodeURIComponent(id)}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: "{}", keepalive: true })
+    .then(response => {
+      if (!response.ok) throw new Error(`Release failed (${response.status})`);
+    })
+    .catch((cause: unknown) => { console.warn("Could not release audio read; the server will expire it.", cause); });
+}
+
+function failPlayback(cause: unknown): void {
+  playbackFailed = true;
+  if (activeJob !== null) { releaseJob(activeJob); activeJob = null; }
+  automaticallyBuffering = false;
+  inFlight?.abort();
+  audio?.pause();
+  setState({ status: "error", error: cause instanceof Error ? cause.message : String(cause) });
+}
+
+function bufferedAhead(element: HTMLAudioElement): number {
+  for (let i = 0; i < element.buffered.length; i++) {
+    if (element.currentTime >= element.buffered.start(i) && element.currentTime <= element.buffered.end(i)) {
+      return element.buffered.end(i) - element.currentTime;
+    }
+  }
+  return 0;
+}
+
 async function feedViaMediaSource(
-  element: HTMLAudioElement,
-  url: string,
-  signal: AbortSignal,
+  element: HTMLAudioElement, chunks: AsyncIterable<Uint8Array>, signal: AbortSignal,
 ): Promise<void> {
   const mediaSource = new MediaSource();
   objectUrl = URL.createObjectURL(mediaSource);
   element.src = objectUrl;
-
   await new Promise<void>((resolve, reject) => {
-    mediaSource.addEventListener("sourceopen", () => { resolve(); }, { once: true });
-    mediaSource.addEventListener("error", () => { reject(new Error("MediaSource failed")); }, {
-      once: true,
-    });
+    const cleanup = () => {
+      mediaSource.removeEventListener("sourceopen", opened);
+      signal.removeEventListener("abort", aborted);
+    };
+    const opened = () => { cleanup(); resolve(); };
+    const aborted = () => { cleanup(); reject(new DOMException("Read aborted", "AbortError")); };
+    mediaSource.addEventListener("sourceopen", opened, { once: true });
+    signal.addEventListener("abort", aborted, { once: true });
+    if (signal.aborted) aborted();
   });
-  if (signal.aborted) return;
-
   const buffer = mediaSource.addSourceBuffer(MSE_MIME);
-  // A SourceBuffer accepts one append at a time; queue behind updateend.
-  const appended = (chunk: Uint8Array) =>
-    new Promise<void>((resolve, reject) => {
-      const onDone = () => {
-        buffer.removeEventListener("updateend", onDone);
-        buffer.removeEventListener("error", onFail);
-        resolve();
-      };
-      const onFail = () => {
-        buffer.removeEventListener("updateend", onDone);
-        buffer.removeEventListener("error", onFail);
-        reject(new Error("append failed"));
-      };
-      buffer.addEventListener("updateend", onDone, { once: true });
-      buffer.addEventListener("error", onFail, { once: true });
-      buffer.appendBuffer(chunk as unknown as BufferSource);
-    });
-
-  const response = await fetch(url, { signal });
-  if (!response.ok || response.body === null) {
-    throw new Error(`stream failed (${response.status})`);
-  }
-  const reader = response.body.getReader();
-
-  // Resolved once there is enough audio to start on, or when the stream ends
-  // first — a two-second message must not wait for a four-second cushion.
-  // The Promise executor runs synchronously, so this is assigned before any
-  // caller can reach it — no placeholder body needed.
-  let releasePlayback!: () => void;
-  const ready = new Promise<void>((resolve) => {
-    releasePlayback = resolve;
+  const appended = (bytes: Uint8Array) => new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      buffer.removeEventListener("updateend", done);
+      buffer.removeEventListener("error", failed);
+      signal.removeEventListener("abort", aborted);
+    };
+    const done = () => { cleanup(); resolve(); };
+    const failed = () => { cleanup(); reject(new Error("Could not decode speech audio.")); };
+    const aborted = () => { cleanup(); reject(new DOMException("Read aborted", "AbortError")); };
+    buffer.addEventListener("updateend", done, { once: true });
+    buffer.addEventListener("error", failed, { once: true });
+    signal.addEventListener("abort", aborted, { once: true });
+    try { signal.throwIfAborted(); buffer.appendBuffer(bytes as Uint8Array<ArrayBuffer>); }
+    catch (cause) { cleanup(); reject(cause instanceof Error ? cause : new Error(String(cause))); }
   });
-
-  // Playing faster drains the cushion faster, so ask for proportionally more.
-  const target =
-    PREBUFFER_SECONDS * STREAM_BYTES_PER_SECOND * Math.max(1, state.rate);
-  let appendedBytes = 0;
-  let pending: Uint8Array[] = [];
-  let pendingBytes = 0;
-  let lastAppendAt = Date.now();
-
-  const flush = async () => {
-    if (pendingBytes === 0) return;
-    const batch = new Uint8Array(pendingBytes);
-    let offset = 0;
-    for (const part of pending) {
-      batch.set(part, offset);
-      offset += part.length;
+  let release!: () => void;
+  let rejectReady!: (cause: unknown) => void;
+  let started = false;
+  const ready = new Promise<void>((resolve, reject) => { release = resolve; rejectReady = reject; });
+  const enough = () => bufferedAhead(element) >= PREBUFFER_SECONDS * Math.max(1, getState().rate);
+  const considerPlayback = () => {
+    if (signal.aborted) return;
+    if (!started && (enough() || downloadComplete)) { started = true; release(); }
+    if (automaticallyBuffering && (enough() || downloadComplete)) {
+      automaticallyBuffering = false;
+      void element.play().catch(failPlayback);
     }
-    pending = [];
-    pendingBytes = 0;
-    lastAppendAt = Date.now();
-    await appended(batch);
-    appendedBytes += batch.length;
-    if (appendedBytes >= target) releasePlayback();
   };
-
-  // Drive the read loop without blocking the caller: the prebuffer gate below
-  // decides when playback starts, not the end of synthesis.
   void (async () => {
     try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done || signal.aborted) break;
-        if (value.length > 0) {
-          pending.push(value);
-          pendingBytes += value.length;
-          // Batching keeps appendBuffer off the main thread on a phone, but a
-          // size-only threshold withholds up to a batch of audio for as long
-          // as the bytes keep trickling — worst at a synthesis seam, which is
-          // exactly when the cushion can least afford it. Age is the second
-          // trigger, so a lull flushes what is already in hand.
-          if (
-            pendingBytes >= APPEND_FLUSH_BYTES ||
-            Date.now() - lastAppendAt >= APPEND_FLUSH_MS
-          ) {
-            await flush();
-          }
-        }
+      for await (const bytes of chunks) {
+        signal.throwIfAborted();
+        await appended(bytes);
+        considerPlayback();
       }
-      await flush();
-      if (!signal.aborted && mediaSource.readyState === "open") {
-        // Sets a finite duration, which makes the whole timeline seekable.
-        mediaSource.endOfStream();
-      }
-      // Short message, or the stream ended before the cushion filled.
-      releasePlayback();
+      signal.throwIfAborted();
+      mediaSource.endOfStream();
+      downloadComplete = true;
+      considerPlayback();
     } catch (cause) {
-      releasePlayback();
-      // A user abort is the expected way out; anything else means the rest of
-      // the message will never be spoken. Left silent — as this was — playback
-      // drains the buffer and stalls on "waiting" forever, which reads as the
-      // reader simply stopping partway with no explanation.
-      if (signal.aborted) return;
-      setState({
-        status: "error",
-        error:
-          cause instanceof Error
-            ? `Playback stopped early: ${cause.message}`
-            : "Playback stopped early.",
-      });
+      rejectReady(cause);
+      if (!signal.aborted) failPlayback(cause);
     }
   })();
-
-  // Hold the caller — and therefore play() — until there is a cushion. The
-  // pill stays on "Preparing" a moment longer in exchange for not starving
-  // three seconds in.
   await ready;
 }
 
-/**
- * Stops playback and tears down the request, which runs the server stream's
- * cancel() and closes the synthesis socket — so stopping a long read costs
- * nothing rather than letting it finish unheard.
- */
+/** Stop both playback and all synthesis belonging to this read. */
 function stop(): void {
   generation += 1;
+  if (activeJob !== null) {
+    releaseJob(activeJob);
+    activeJob = null;
+  }
   lastRenderedSecond = -1;
   inFlight?.abort();
   inFlight = null;
@@ -373,12 +303,17 @@ function stop(): void {
     URL.revokeObjectURL(objectUrl);
     objectUrl = null;
   }
+  downloadComplete = false;
+  automaticallyBuffering = false;
+  playbackFailed = false;
   state = { ...IDLE, rate: state.rate };
   emit();
 }
 
 function pause(): void {
+  automaticallyBuffering = false;
   audio?.pause();
+  if (!playbackFailed) setState({ status: "paused" });
 }
 
 function resume(): void {
@@ -393,9 +328,8 @@ function resume(): void {
  * `seekable` is the wrong ceiling: on an unbounded stream it reports
  * [0, Infinity], so a jump past the received audio does not wait for data — the
  * element resets to zero, which reads as the player wrapping to the start.
- * `buffered` is the honest edge, and because MediaSource is fed every byte as
- * it arrives while synthesis outruns playback several times over, it sits well
- * ahead of the playhead.
+ * `buffered` is the honest edge, and because MediaSource contains only verified chunks,
+ * it describes the audio available for seeking.
  *
  * Landing exactly on that edge starves playback, which surfaces as the
  * "Preparing" state until more audio lands — the right answer for "I fast
@@ -457,20 +391,28 @@ async function speak(input: {
       };
       throw new Error(detail.error ?? `prepare failed (${response.status})`);
     }
-    const { id } = (await response.json()) as { id: string };
-    if (mine !== generation) return; // Stopped while preparing.
+    const { id, chunks: count } = (await response.json()) as { id: string; chunks: number };
+    if (mine !== generation) {
+      releaseJob(id);
+      return;
+    }
+    activeJob = id;
 
     const element = ensureAudio();
-    const url = `${PLUGIN_ROUTE}/stream?id=${encodeURIComponent(id)}`;
     const controller = new AbortController();
     inFlight = controller;
 
+    const chunks = downloadChunks(PLUGIN_ROUTE, id, count, controller.signal);
     if (canUseMediaSource()) {
-      await feedViaMediaSource(element, url, controller.signal);
+      await feedViaMediaSource(element, chunks, controller.signal);
     } else {
-      // Fallback for engines without MSE for mp3: playback works, but the
-      // browser buffers barely ahead, so a 10-second jump moves less.
-      element.src = url;
+      // Engines without MP3 MediaSource get a complete, seekable file.
+      const parts: BlobPart[] = [];
+      for await (const bytes of chunks) parts.push(bytes as Uint8Array<ArrayBuffer>);
+      controller.signal.throwIfAborted();
+      objectUrl = URL.createObjectURL(new Blob(parts, { type: "audio/mpeg" }));
+      element.src = objectUrl;
+      downloadComplete = true;
     }
     if (mine !== generation) return; // Stopped while connecting.
 
@@ -479,10 +421,7 @@ async function speak(input: {
     await element.play();
   } catch (cause) {
     if (mine !== generation) return;
-    setState({
-      status: "error",
-      error: cause instanceof Error ? cause.message : String(cause),
-    });
+    failPlayback(cause);
   }
 }
 

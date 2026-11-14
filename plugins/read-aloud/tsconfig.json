@@ -11,6 +11,10 @@
   "include": [
     "server.ts",
     "synth.ts",
+    "synthesis.test.ts",
+    "routes.test.ts",
+    "audio-job.test.ts",
+    "download.test.ts",
     "synth.test.ts",
     "gec.ts",
     "gec.test.ts",
