@@ -1,6 +1,6 @@
 # Jarvis for BB
 
-Status: specified after product interview; implementation not started. Updated 2026-11-14.
+Status: implementation in disposable staging; initial typed panel rejected as insufficient. Hands-free conversation and cross-thread briefing are undergoing end-to-end acceptance. Full vision and promotion remain incomplete. Updated 2026-11-14.
 
 ## Purpose
 

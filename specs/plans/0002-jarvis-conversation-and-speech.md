@@ -1,6 +1,6 @@
 # Jarvis conversation and speech
 
-Status: planned. Parent: [delivery plan](0001-jarvis.md). Product contract: [vision](../vision/jarvis.md).
+Status: implementation and real-service voice-path acceptance in progress; see [integration evidence](../research/jarvis-hands-free-integration.md). Parent: [delivery plan](0001-jarvis.md). Product contract: [vision](../vision/jarvis.md).
 
 ## Outcome and dependencies
 

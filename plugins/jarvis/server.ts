@@ -1,55 +1,283 @@
-import { defineRpcContract, type BbPluginApi } from '@get-bb/plugin-sdk';
-import { z } from 'zod';
-import { createCoordinator } from './coordinator.mjs';
+import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { z } from "zod";
+import { createCoordinator } from "./coordinator.mjs";
 
-const session = z.object({id:z.string(),projectId:z.string(),title:z.string(),status:z.string(),providerId:z.string()});
-const task = z.object({operationId:z.string(),prompt:z.string(),threadId:z.string().optional(),dispatch:z.string(),dispatchEnabled:z.boolean(),cancellation:z.string(),verification:z.string(),session:session.optional()});
-const interaction = z.object({id:z.string(),threadId:z.string(),status:z.string(),payload:z.object({kind:z.string()}).passthrough()}).passthrough();
-export const rpcContract=defineRpcContract({
-  sessions:{input:z.object({offset:z.number().int().min(0).max(10000).default(0)}),output:z.array(session)},
-  tasks:{input:z.null(),output:z.array(task)},
-  inspect:{input:z.object({threadId:z.string().max(80)}),output:z.object({session,output:z.string(),owned:z.boolean(),interactions:z.array(z.object({interaction,revision:z.string()}))})},
-  delegate:{input:z.object({operationId:z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),prompt:z.string().trim().min(1).max(8000)}),output:task},
-  stop:{input:z.object({operationId:z.string().max(80)}),output:task},
-  reconcile:{input:z.object({operationId:z.string().max(80)}),output:task},
-  decide:{input:z.object({operationId:z.string().max(80),interactionId:z.string().max(80),revision:z.string().length(64),decision:z.enum(['allow_once','deny'])}),output:z.object({decision:z.string(),revision:z.string(),state:z.string()})},
+const session = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  title: z.string(),
+  status: z.string(),
+  providerId: z.string(),
 });
-export type Session=z.infer<typeof session>;
-export type Task=z.infer<typeof task>;
-export default async function plugin(bb:BbPluginApi) {
-  const settings=bb.settings.define({
-    projectId:{type:'string',label:'Project for delegated work',default:''},
-    environmentId:{type:'string',label:'Environment for delegated work',default:''},
-    providerId:{type:'string',label:'Provider for delegated work',default:''},
-    relayBaseUrl:{type:'string',label:'Staging relay loopback URL',default:''},
-    relayToken:{type:'string',label:'Staging relay credential',secret:true,default:''},
+const task = z.object({
+  operationId: z.string(),
+  prompt: z.string(),
+  threadId: z.string().optional(),
+  dispatch: z.string(),
+  dispatchEnabled: z.boolean(),
+  cancellation: z.string(),
+  verification: z.string(),
+  session: session.optional(),
+});
+const interaction = z
+  .object({
+    id: z.string(),
+    threadId: z.string(),
+    status: z.string(),
+    payload: z.object({ kind: z.string() }).passthrough(),
+  })
+  .passthrough();
+export const rpcContract = defineRpcContract({
+  assistant: {
+    input: z.object({
+      action: z.enum([
+        "state",
+        "start",
+        "heartbeat",
+        "interrupt",
+        "close",
+        "watch",
+        "quiet",
+        "brief",
+        "questions",
+        "answer",
+        "next",
+        "talk",
+        "ack",
+      ]),
+      clientId: z.string().uuid(),
+      enabled: z.boolean().optional(),
+      takeover: z.boolean().optional(),
+      text: z.string().max(8000).optional(),
+      utteranceId: z.string().uuid().optional(),
+      status: z.enum(["played", "interrupted"]).optional(),
+    }),
+    output: z.unknown(),
+  },
+  sessions: {
+    input: z.object({ offset: z.number().int().min(0).max(10000).default(0) }),
+    output: z.array(session),
+  },
+  tasks: { input: z.null(), output: z.array(task) },
+  inspect: {
+    input: z.object({ threadId: z.string().max(80) }),
+    output: z.object({
+      session,
+      output: z.string(),
+      owned: z.boolean(),
+      interactions: z.array(z.object({ interaction, revision: z.string() })),
+    }),
+  },
+  delegate: {
+    input: z.object({
+      operationId: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
+      prompt: z.string().trim().min(1).max(8000),
+    }),
+    output: task,
+  },
+  stop: { input: z.object({ operationId: z.string().max(80) }), output: task },
+  reconcile: {
+    input: z.object({ operationId: z.string().max(80) }),
+    output: task,
+  },
+  decide: {
+    input: z.object({
+      operationId: z.string().max(80),
+      interactionId: z.string().max(80),
+      revision: z.string().length(64),
+      decision: z.enum(["allow_once", "deny"]),
+    }),
+    output: z.object({
+      decision: z.string(),
+      revision: z.string(),
+      state: z.string(),
+    }),
+  },
+});
+export type Session = z.infer<typeof session>;
+export type Task = z.infer<typeof task>;
+export default async function plugin(bb: BbPluginApi) {
+  const settings = bb.settings.define({
+    projectId: {
+      type: "string",
+      label: "Project for delegated work",
+      default: "",
+    },
+    environmentId: {
+      type: "string",
+      label: "Environment for delegated work",
+      default: "",
+    },
+    providerId: {
+      type: "string",
+      label: "Provider for delegated work",
+      default: "",
+    },
+    relayBaseUrl: {
+      type: "string",
+      label: "Staging relay loopback URL",
+      default: "",
+    },
+    relayToken: {
+      type: "string",
+      label: "Staging relay credential",
+      secret: true,
+      default: "",
+    },
   });
-  const config=await settings.get();
-  let call:(method:string,input:unknown)=>Promise<unknown>;
-  if(config.relayBaseUrl) {
-    const url=new URL(config.relayBaseUrl);
-    if(url.protocol!=='http:' || url.hostname!=='127.0.0.1' || url.username || url.password || url.pathname!=='/' || url.search || url.hash) throw Error('Staging relay must be a loopback HTTP origin reached through the dedicated SSH tunnel');
-    const abort=new AbortController();bb.onDispose(()=>abort.abort());
-    call=async(method,input)=>{
-      const response=await fetch(new URL(method,url),{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${config.relayToken}`},body:JSON.stringify(input??{}),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(60000)]),redirect:'error'});
-      if(!response.ok) throw Error(`Relay request failed (${response.status}); refresh task state before retrying`);
+  const config = await settings.get();
+  let call: (method: string, input: unknown) => Promise<unknown>;
+  if (config.relayBaseUrl) {
+    const url = new URL(config.relayBaseUrl);
+    if (
+      url.protocol !== "http:" ||
+      url.hostname !== "127.0.0.1" ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    )
+      throw Error(
+        "Staging relay must be a loopback HTTP origin reached through the dedicated SSH tunnel",
+      );
+    const abort = new AbortController();
+    bb.onDispose(() => abort.abort());
+    call = async (method, input) => {
+      const response = await fetch(new URL(method, url), {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${config.relayToken}`,
+        },
+        body: JSON.stringify(input ?? {}),
+        signal: AbortSignal.any([abort.signal, AbortSignal.timeout(60000)]),
+        redirect: "error",
+      });
+      if (!response.ok) {
+        const failure = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw Error(
+          failure?.error ?? `Relay request failed (${response.status})`,
+        );
+      }
       return response.json();
     };
   } else {
-    const coordinator=createCoordinator({sdk:bb.sdk,store:{read:()=>bb.storage.kv.get('coordinator-v1'),write:(value:unknown)=>bb.storage.kv.set('coordinator-v1',value)},config:{...config,owner:'jarvis',maxTasks:100}});
-    call=async(method,input)=>{
-      if(['delegate','stop','decide'].includes(method) && (!config.projectId || !config.environmentId || !config.providerId)) throw Error('Configure the work project, environment and provider first');
-      if(method==='tasks') return coordinator.tasks();
-      return coordinator[method as Exclude<keyof typeof coordinator,'tasks'>](input as never);
+    const coordinator = createCoordinator({
+      sdk: bb.sdk,
+      store: {
+        read: () => bb.storage.kv.get("coordinator-v1"),
+        write: (value: unknown) => bb.storage.kv.set("coordinator-v1", value),
+      },
+      config: { ...config, owner: "jarvis", maxTasks: 100 },
+    });
+    call = async (method, input) => {
+      if (
+        ["delegate", "stop", "decide"].includes(method) &&
+        (!config.projectId || !config.environmentId || !config.providerId)
+      )
+        throw Error(
+          "Configure the work project, environment and provider first",
+        );
+      if (method === "assistant")
+        throw Error("Configure the conversation relay before starting Jarvis");
+      if (method === "tasks") return coordinator.tasks();
+      return coordinator[method as Exclude<keyof typeof coordinator, "tasks">](
+        input as never,
+      );
     };
   }
-  bb.rpc.register(rpcContract,{
-    sessions:async input=>rpcContract.sessions.output.parse(await call('sessions',input)),
-    tasks:async()=>rpcContract.tasks.output.parse(await call('tasks',{})),
-    inspect:async input=>rpcContract.inspect.output.parse(await call('inspect',input)),
-    delegate:async input=>rpcContract.delegate.output.parse(await call('delegate',input)),
-    stop:async input=>rpcContract.stop.output.parse(await call('stop',input)),
-    reconcile:async input=>rpcContract.reconcile.output.parse(await call('reconcile',input)),
-    decide:async input=>rpcContract.decide.output.parse(await call('decide',input)),
+  bb.rpc.register(rpcContract, {
+    assistant: async (input) => call("assistant", input),
+    sessions: async (input) =>
+      rpcContract.sessions.output.parse(await call("sessions", input)),
+    tasks: async () => rpcContract.tasks.output.parse(await call("tasks", {})),
+    inspect: async (input) =>
+      rpcContract.inspect.output.parse(await call("inspect", input)),
+    delegate: async (input) =>
+      rpcContract.delegate.output.parse(await call("delegate", input)),
+    stop: async (input) =>
+      rpcContract.stop.output.parse(await call("stop", input)),
+    reconcile: async (input) =>
+      rpcContract.reconcile.output.parse(await call("reconcile", input)),
+    decide: async (input) =>
+      rpcContract.decide.output.parse(await call("decide", input)),
   });
+  if (config.relayBaseUrl) {
+    for (const path of ["speech", "transcribe", "turn"] as const)
+      bb.http.route(
+        "POST",
+        "/" + path,
+        async (context) => {
+          const raw = await context.req.text();
+          if (raw.length > 2000000)
+            return context.text("Audio or speech request is too large", 413);
+          let bytes: Uint8Array;
+          try {
+            if (path === "speech") bytes = new TextEncoder().encode(raw);
+            else {
+              const input = z
+                .object({
+                  audio: z
+                    .string()
+                    .max(1500000)
+                    .regex(/^[A-Za-z0-9+/]*={0,2}$/),
+                })
+                .strict()
+                .parse(JSON.parse(raw));
+              bytes = Buffer.from(input.audio, "base64");
+            }
+          } catch {
+            return context.text("Invalid voice input", 400);
+          }
+          const endpoint =
+            path === "turn"
+              ? "http://127.0.0.1:4843/turn"
+              : new URL(path, config.relayBaseUrl).href;
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "content-type":
+                  path === "speech"
+                    ? "application/json"
+                    : path === "turn"
+                      ? "application/octet-stream"
+                      : "audio/wav",
+                "x-jarvis-client": context.req.header("x-jarvis-client") ?? "",
+                "x-jarvis-lease": context.req.header("x-jarvis-lease") ?? "",
+                ...(path === "turn"
+                  ? {}
+                  : { authorization: `Bearer ${config.relayToken}` }),
+              },
+              body: bytes as BodyInit,
+              signal: AbortSignal.any([
+                context.req.raw.signal,
+                AbortSignal.timeout(60000),
+              ]),
+              redirect: "error",
+            });
+            return new Response(response.body, {
+              status: response.status,
+              headers: {
+                "content-type":
+                  response.headers.get("content-type") ?? "application/json",
+                "cache-control": "no-store",
+              },
+            });
+          } catch {
+            return context.json(
+              {
+                error:
+                  "Voice connection failed. Typed conversation is still available.",
+              },
+              503,
+            );
+          }
+        },
+        { auth: "local" },
+      );
+  }
 }

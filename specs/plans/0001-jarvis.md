@@ -1,6 +1,6 @@
 # Jarvis plugin delivery plan
 
-Status: implementation authorized by Chris on 2026-11-14; targeted source research complete; initial typed coordination foundation running in disposable staging. Chris required this review before implementation code. Promotion remains gated on approval of the staged candidate. See [staging preflight](../research/jarvis-staging-preflight.md) for verified constraints and the approved staging decision.
+Status: implementation authorized by Chris on 2026-11-14; targeted source research complete; initial typed coordination panel rejected as insufficient; hands-free briefing, watching, and exact-question answer flow now undergoing real-session acceptance in disposable staging. Chris required this review before implementation code. Promotion remains gated on approval of the staged candidate. See [staging preflight](../research/jarvis-staging-preflight.md) for verified constraints and the approved staging decision.
 
 Vision: [Jarvis for BB](../vision/jarvis.md).
 
