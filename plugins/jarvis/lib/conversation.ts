@@ -1,3 +1,4 @@
+import { MediaPlayback } from "./media-playback.mjs";
 import { readPcmFrames } from "./pcm-stream.mjs";
 import { diagnostic } from "./diagnostics.mjs";
 import { VoiceActivityDetector, rmsOf } from "./vad";
@@ -93,7 +94,7 @@ export class VoiceConversation {
   private stream: MediaStream | null = null;
   private mic: MediaStreamAudioSourceNode | null = null;
   private worklet: AudioWorkletNode | null = null;
-  private output = new Set<AudioBufferSourceNode>();
+  private mediaOutput: MediaPlayback | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private generation = 0;
   private playback = new AbortController();
@@ -232,7 +233,7 @@ export class VoiceConversation {
     this.closed = false;
     // Resume directly in the initial user gesture; never silently acquire a mic.
     this.trace("connect", "start");
-    if (audioEnabled) {
+    if (audioEnabled && listen) {
       this.audio ??= new AudioContext({ sampleRate: 16000 });
       this.audio.onstatechange = () => {
         const state = this.audio?.state;
@@ -312,11 +313,7 @@ export class VoiceConversation {
   ) {
     let generation = this.generation;
     try {
-      if (
-        !this.view.active ||
-        (speak && (!this.audio || this.audio.state !== "running"))
-      )
-        await this.connect(false, false, speak);
+      if (!this.view.active) await this.connect(false, false, speak);
       if (action !== "heartbeat" && action !== "next") this.interruptLocal();
       generation = this.generation;
       if (action !== "next") this.update({ thinking: true, error: "" });
@@ -386,14 +383,6 @@ export class VoiceConversation {
     this.turns.advanceBoundary();
     this.playback.abort();
     this.playback = new AbortController();
-    for (const source of this.output) {
-      try {
-        source.stop();
-      } catch {
-        /* already ended */
-      }
-    }
-    this.output.clear();
     this.update({ speaking: false, preparingAudio: false, thinking: false });
   }
   async interrupt() {
@@ -412,8 +401,25 @@ export class VoiceConversation {
       this.fail(e);
     }
   }
+  async testSpeaker() {
+    try {
+      if (!this.view.active) await this.connect(false, false, false);
+      await this.interrupt();
+      await this.releaseMic();
+      await this.audio?.close();
+      this.audio = null;
+      this.moduleAdded = false;
+      this.trace("speaker-check", "start");
+      this.update({ error: "" });
+      await this.speak(
+        "This is Jarvis's speaker check. The microphone is off. You should hear this through your selected media speakers.",
+      );
+    } catch (e) {
+      this.fail(e);
+    }
+  }
   async speak(markdown: string) {
-    if (!this.audio || this.closed) return false;
+    if (this.closed) return false;
     const text = toSpeakable(markdown);
     this.lastSpoken = text;
     const splitter = new SentenceStream();
@@ -426,12 +432,16 @@ export class VoiceConversation {
       },
     );
     const generation = this.generation,
-      signal = this.playback.signal;
-    this.update({ speaking: false, preparingAudio: true, caption: markdown });
-    const started = performance.now();
+      signal = this.playback.signal,
+      started = performance.now();
     let totalBytes = 0;
+    this.mediaOutput ??= new MediaPlayback(new Audio(), (phase, metadata) => {
+      this.trace("media", phase, metadata);
+      if (phase === "running")
+        this.update({ speaking: true, preparingAudio: false });
+    });
+    this.update({ speaking: false, preparingAudio: true, caption: markdown });
     this.trace("speech", "start");
-    let cursor = this.audio.currentTime + 0.05;
     try {
       for (const part of parts) {
         const response = await fetch(base + "speech", {
@@ -449,73 +459,40 @@ export class VoiceConversation {
           );
         if (response.headers.get("content-type") !== "application/x-jarvis-pcm")
           throw Error("Voice protocol changed. Reload Jarvis.");
-        let odd: number | null = null;
+        const chunks: Uint8Array[] = [];
+        let size = 0;
         for await (const chunk of readPcmFrames(response.body)) {
           if (!totalBytes)
             this.trace("speech", "first-byte", {
               durationMs: performance.now() - started,
             });
           totalBytes += chunk.length;
+          size += chunk.length;
+          if (size > 12000000) throw Error("Audio response exceeded its limit");
           if (generation !== this.generation || signal.aborted) return false;
-          let bytes: Uint8Array = chunk;
-          if (odd !== null) {
-            const prefixed = new Uint8Array(chunk.length + 1);
-            prefixed[0] = odd;
-            prefixed.set(chunk, 1);
-            bytes = prefixed;
-            odd = null;
-          }
-          if (bytes.length % 2) {
-            odd = bytes[bytes.length - 1]!;
-            bytes = bytes.subarray(0, bytes.length - 1);
-          }
-          if (!bytes.length) continue;
-          const samples = new Float32Array(bytes.length / 2);
-          const data = new DataView(
-            bytes.buffer,
-            bytes.byteOffset,
-            bytes.byteLength,
-          );
-          for (let i = 0; i < samples.length; i++)
-            samples[i] = data.getInt16(i * 2, true) / 32768;
-          if (this.audio.state !== "running")
-            throw Error("Audio is suspended. Tap Retry audio to resume.");
-          const buffer = this.audio.createBuffer(1, samples.length, 24000);
-          buffer.copyToChannel(samples, 0);
-          const source = this.audio.createBufferSource();
-          source.buffer = buffer;
-          source.connect(this.audio.destination);
-          source.onended = () => {
-            this.output.delete(source);
-            source.disconnect();
-          };
-          this.output.add(source);
-          cursor = Math.max(cursor, this.audio.currentTime + 0.02);
-          source.start(cursor);
-          if (!this.view.speaking) {
-            this.trace("playback", "scheduled", {
-              bufferedMs: (cursor - this.audio.currentTime) * 1000,
-            });
-            this.update({ speaking: true, preparingAudio: false });
-          }
-          cursor += buffer.duration;
+          chunks.push(chunk);
         }
+        signal.throwIfAborted();
+        const pcm = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks) {
+          pcm.set(chunk, offset);
+          offset += chunk.length;
+        }
+        let energy = 0;
+        const data = new DataView(pcm.buffer);
+        for (let i = 0; i < size; i += 2) {
+          const sample = data.getInt16(i, true) / 32768;
+          energy += sample * sample;
+        }
+        this.trace("media", "ready", {
+          bytes: size,
+          rms: Math.sqrt(energy / (size / 2)),
+          sampleRate: 24000,
+        });
+        await this.mediaOutput.play(pcm, signal);
       }
-      this.trace("speech", "complete", {
-        bytes: totalBytes,
-        samples: totalBytes / 2,
-        durationMs: performance.now() - started,
-      });
-      const deadline =
-        performance.now() +
-        Math.max(0, cursor - this.audio.currentTime) * 1000 +
-        5000;
-      while (this.output.size && !signal.aborted) {
-        if (performance.now() > deadline || this.audio.state !== "running")
-          throw Error("Audio playback stopped. Tap Retry audio to resume.");
-        await new Promise((resolve) => setTimeout(resolve, 40));
-      }
-      this.trace("playback", signal.aborted ? "interrupted" : "complete", {
+      this.trace("playback", "complete", {
         bytes: totalBytes,
         durationMs: performance.now() - started,
       });
@@ -527,13 +504,11 @@ export class VoiceConversation {
           bytes: totalBytes,
           durationMs: performance.now() - started,
         });
-        for (const source of this.output) {
-          try {
-            source.stop();
-          } catch {}
-        }
-        this.output.clear();
-        this.fail(e);
+        this.fail(
+          e instanceof DOMException && e.name === "NotAllowedError"
+            ? Error("Audio playback was blocked. Tap Retry audio.")
+            : e,
+        );
       }
       return false;
     } finally {

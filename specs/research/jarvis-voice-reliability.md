@@ -27,6 +27,10 @@ A real browser failure test additionally exposed BB's rejection of an optional `
 
 The task-owned runtime evidence is retained outside the VM under `thread-storage/thr_qpanimf2w7/jarvis-staging`. Private journals are not published. No promotion occurred.
 
+## Subsequent phone result
+
+Chris reported continued silence on Android/car Bluetooth. See [the Android follow-up](jarvis-android-playback.md) for the preserved adverse result, revised playback path and answer-classification defect. The desktop evidence above does not establish device acceptance.
+
 ## Still open
 
 Physical Android/car playback and exact browser/version; a full 30-turn and listening-hour suite; measured latency distributions; finer model/lease failure categories and complete support-bundle aggregation; microphone echo/continuation calibration; automatic recovery of failed notifications; conversational request deduplication, uncertain-answer reconciliation and stale notification supersession. The larger A/B staff-behavior gaps, C memory/recall and D schedules/events remain as listed in the original analysis.

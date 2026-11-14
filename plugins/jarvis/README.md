@@ -59,14 +59,18 @@ requirements and separately provisioned Smart Turn v3.2 CPU model. Set
 Browser audio enters BB as bounded base64 JSON, is decoded server-side, and is
 never written to disk. Alfred output is 24 kHz signed 16-bit mono PCM. The relay wraps each chunk with
 a four-byte big-endian length; a zero-length completion frame follows successful
-synthesis and lease release. The browser rejects EOF without that frame.
+synthesis and lease release. The browser rejects EOF without that frame. Each complete sentence is wrapped as
+24 kHz PCM16 WAV and played through a native audio element, separately from the
+16 kHz microphone AudioContext. This currently buffers one sentence before playback.
 
 ## Voice diagnostics
 
-The UI separates Preparing audio from playback scheduling and reports failures.
+The UI separates Preparing audio from native media playback and reports failures.
+Test speaker · microphone off releases capture tracks and closes their context
+before playing a fixed spoken check. It leaves listening off; Start Jarvis resumes it.
 Retry audio resumes the audio context from a tap and repeats the current question
 or latest reply. Playback acknowledgement is bound to the owning device lease,
-delivery claim and conversational generation. It indicates browser completion,
+delivery claim and conversational generation. It indicates native media completion,
 not proof of acoustic output through a physical speaker.
 
 Download diagnostics exports up to 200 browser events retained in local storage

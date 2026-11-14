@@ -371,3 +371,49 @@ test("interrupt during decision persistence leaves no mutation or uncertain rece
   assert.equal(f.calls.length, 0);
   assert.deepEqual(f.saved().decisions, {});
 });
+
+test("a contextual spoken answer reaches the focused question without invented option mapping", async () => {
+  const text = "I see your text, but I absolutely do not hear the audio.";
+  const interaction = {
+    id: "audio-check",
+    threadId: "thread",
+    status: "pending",
+    origin: {
+      kind: "plugin",
+      pluginId: "provider-codex",
+      rendererId: "async-question",
+    },
+    payload: {
+      kind: "plugin",
+      data: {
+        questions: [
+          {
+            title: "Do you now hear the response through the car speakers?",
+            options: ["Yes, I hear it", "Still silent", "I will test later"],
+          },
+        ],
+      },
+    },
+  };
+  const f = fixture({
+    interaction,
+    model: async ({ input }) => {
+      if (!input.startsWith("{")) return "I cannot send that from here.";
+      const data = JSON.parse(input);
+      return JSON.stringify({
+        action: data.focusedQuestion?.prompt?.includes("car speakers")
+          ? "answer"
+          : "chat",
+      });
+    },
+  });
+  await f.command("start");
+  const q = await f.command("questions");
+  await f.command("ack", { utteranceId: q.utterance.id, status: "played" });
+  await f.command("talk", { text });
+  assert.equal(f.calls.length, 1);
+  assert.deepEqual(f.calls[0].value.answers["question-1"], {
+    selected: [],
+    freeText: text,
+  });
+});

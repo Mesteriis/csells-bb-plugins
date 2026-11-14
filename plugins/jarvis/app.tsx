@@ -138,6 +138,9 @@ function Jarvis() {
           Retry audio
         </button>
       )}
+      <button className={button} onClick={() => void voice.testSpeaker()}>
+        Test speaker · microphone off
+      </button>
       <button
         className="text-sm underline"
         onClick={() => voice.exportDiagnostics()}

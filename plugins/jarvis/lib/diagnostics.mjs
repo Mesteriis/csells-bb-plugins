@@ -2,6 +2,8 @@
 // arbitrary error strings or audio. Shared by client and relay ingestion.
 const stages = new Set([
   "connect",
+  "media",
+  "speaker-check",
   "capture",
   "turn",
   "transcribe",
@@ -15,6 +17,7 @@ const stages = new Set([
 const phases = new Set([
   "start",
   "ready",
+  "waiting",
   "first-byte",
   "scheduled",
   "complete",
@@ -43,6 +46,8 @@ export function diagnostic(input, now = Date.now()) {
     "sampleRate",
     "bufferedMs",
     "pid",
+    "positionMs",
+    "rms",
     "exitCode",
   ])
     if (Number.isFinite(input[key]) && input[key] >= 0)
