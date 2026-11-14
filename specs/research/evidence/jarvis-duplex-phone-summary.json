@@ -1,0 +1,45 @@
+{
+  "reportedByUser": "WebRTC appeared to be the only working mode; confusing UI limited confidence.",
+  "modes": [
+    {
+      "mode": "mic-off",
+      "maxMicRms": 0,
+      "maxPlaybackMs": 1178.4460000000001,
+      "bytesSent": 0,
+      "bytesReceived": 0,
+      "samples": 12
+    },
+    {
+      "mode": "media-before-mic",
+      "maxMicRms": 0.35219521000859505,
+      "maxPlaybackMs": 1388.183,
+      "bytesSent": 0,
+      "bytesReceived": 0,
+      "samples": 6
+    },
+    {
+      "mode": "media-after-mic",
+      "maxMicRms": 0.26054512339716496,
+      "maxPlaybackMs": 238.014,
+      "bytesSent": 0,
+      "bytesReceived": 0,
+      "samples": 10
+    },
+    {
+      "mode": "unprocessed",
+      "maxMicRms": 0.10750519572043346,
+      "maxPlaybackMs": 255.332,
+      "bytesSent": 0,
+      "bytesReceived": 0,
+      "samples": 6
+    },
+    {
+      "mode": "webrtc",
+      "maxMicRms": 0.47458354706370126,
+      "maxPlaybackMs": 8000.842000000001,
+      "bytesSent": 30338,
+      "bytesReceived": 27477,
+      "samples": 8
+    }
+  ]
+}

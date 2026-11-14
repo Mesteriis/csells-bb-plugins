@@ -2,6 +2,7 @@
 // arbitrary error strings or audio. Shared by client and relay ingestion.
 const stages = new Set([
   "connect",
+  "duplex",
   "page",
   "media",
   "speaker-check",
@@ -17,6 +18,8 @@ const stages = new Set([
 ]);
 const phases = new Set([
   "start",
+  "audible",
+  "silent",
   "visible",
   "hidden",
   "muted",
@@ -39,11 +42,16 @@ export function diagnostic(input, now = Date.now()) {
   if (!input || !stages.has(input.stage) || !phases.has(input.phase))
     return null;
   const out = { at: now, stage: input.stage, phase: input.phase };
+  if (["mic-off","media-before-mic","media-after-mic","unprocessed","webrtc","jarvis-graph","native-graph","webrtc-jarvis"].includes(input.mode)) out.mode=input.mode;
+  for (const key of ["micLive","echoCancellation","noiseSuppression","autoGainControl"]) if(typeof input[key]==="boolean") out[key]=input[key];
   for (const key of ["clientId", "requestId", "utteranceId"])
     if (typeof input[key] === "string" && uuid.test(input[key]))
       out[key] = input[key];
   for (const key of [
     "durationMs",
+    "bytesSent",
+    "contextSampleRate",
+    "bytesReceived",
     "clockMs",
     "utteranceAgeMs",
     "bytes",

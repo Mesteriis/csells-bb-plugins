@@ -98,3 +98,10 @@ separate planned milestones.
 
 Research and integration evidence: [specs/research](../../specs/research/jarvis-hands-free-integration.md).
 Reused code and licenses: [PROVENANCE.md](PROVENANCE.md).
+
+A staging-only duplex spike is available at `/api/v1/plugins/jarvis/http/duplex`
+when the relay is configured. End the normal conversation first. Its guided
+check combines WebRTC playback with a zero-output 16 kHz capture worklet;
+advanced comparisons are collapsed. This diagnostic route is not full Jarvis
+integration or evidence of phone/car acceptance. Findings and next gates live in
+[the duplex spike report](../../specs/research/android-duplex-spikes.md).

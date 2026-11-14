@@ -1,3 +1,5 @@
+import {duplexPage} from "./spikes/duplex-page.mjs";
+import {duplexVoice} from "./spikes/duplex-voice.mjs";
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { createCoordinator } from "./coordinator.mjs";
@@ -213,6 +215,7 @@ export default async function plugin(bb: BbPluginApi) {
       rpcContract.decide.output.parse(await call("decide", input)),
   });
   if (config.relayBaseUrl) {
+    bb.http.route("GET", "/duplex", async () => new Response(duplexPage.replace("__VOICE__", duplexVoice), {headers:{"content-type":"text/html; charset=utf-8", "cache-control":"no-store"}}), {auth:"local"});
     for (const path of ["speech", "transcribe", "turn", "diagnostics"] as const)
       bb.http.route(
         "POST",

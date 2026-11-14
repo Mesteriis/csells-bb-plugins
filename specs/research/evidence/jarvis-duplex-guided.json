@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-14T22:35:07.740Z",
+  "method": "Desktop browser with generated mic; actual VM guided WebRTC spike with zero-output16k worklet; no physical Android audio claim",
+  "stats": {
+    "rms": 0.07077811510758363,
+    "positionMs": 10995.594000000001,
+    "durationMs": 12038.299999982119,
+    "bytesSent": 44487,
+    "bytesReceived": 36676,
+    "sampleRate": 48000,
+    "contextSampleRate": 16000,
+    "samples": 185984,
+    "micLive": true,
+    "echoCancellation": false,
+    "noiseSuppression": false,
+    "autoGainControl": false
+  },
+  "errors": [],
+  "overflow": false
+}
