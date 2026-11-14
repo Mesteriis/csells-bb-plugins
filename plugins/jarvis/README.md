@@ -77,7 +77,9 @@ Download diagnostics exports up to 200 browser events retained in local storage
 for the last day. Metadata is also forwarded to the relay; relay diagnostics keep
 at most 1,000 events in `<journal>.diagnostics`, filtered to the last day on read
 and rewritten on the next event. Records contain only allowed stage/status values,
-correlation IDs, durations/counts and browser/OS metadata. They exclude speech,
+correlation IDs, durations/counts and browser/OS metadata. Device event time is
+retained separately from upload receipt time; monotonic playback/command durations,
+page visibility and microphone transitions help diagnose delayed audio. They exclude speech,
 transcripts, arbitrary error strings, URLs and credentials. The separate assistant
 journal still contains conversation text; these diagnostic limits do not establish
 its retention policy. Browser diagnostics remain exportable during relay outages.

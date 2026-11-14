@@ -39,20 +39,23 @@ export class MediaPlayback {
     audio.src = url;
     audio.muted = false;
     audio.volume = 1;
+    const started = performance.now();
+    const timing = () => ({
+      positionMs: audio.currentTime * 1000,
+      durationMs: performance.now() - started,
+    });
     let cleanup = () => {};
     try {
       await new Promise((resolve, reject) => {
         const ended = () => {
-          this.report("complete", { positionMs: audio.currentTime * 1000 });
+          this.report("complete", timing());
           resolve();
         };
         const failed = () => reject(Error("Media playback failed"));
         const aborted = () =>
           reject(signal.reason ?? Error("Playback interrupted"));
-        const running = () =>
-          this.report("running", { positionMs: audio.currentTime * 1000 });
-        const waiting = () =>
-          this.report("waiting", { positionMs: audio.currentTime * 1000 });
+        const running = () => this.report("running", timing());
+        const waiting = () => this.report("waiting", timing());
         const timer = setTimeout(
           () => reject(Error("Media playback timed out")),
           pcm.length / 48 + 10000,

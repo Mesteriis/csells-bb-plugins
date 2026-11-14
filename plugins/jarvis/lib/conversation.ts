@@ -124,6 +124,12 @@ export class VoiceConversation {
   private flushing = false;
   private traceId: string = crypto.randomUUID();
   private playbackFailed = false;
+  private utteranceId: string | undefined;
+  private visibilityChanged = () =>
+    this.trace(
+      "page",
+      document.visibilityState === "visible" ? "visible" : "hidden",
+    );
   private rpc: Command;
   private trace(
     stage: string,
@@ -138,6 +144,9 @@ export class VoiceConversation {
       clientId: this.clientId,
       requestId: this.traceId,
       generation: this.generation,
+      utteranceId: this.utteranceId,
+      clockMs: performance.now(),
+      visibility: document.visibilityState,
       browser,
       os: /Android/.test(ua)
         ? "android"
@@ -167,7 +176,8 @@ export class VoiceConversation {
   private async flushDiagnostics() {
     if (this.flushing || !this.diagnosticQueue.length) return;
     this.flushing = true;
-    const events = this.diagnosticQueue.slice(0, 30);
+    const events = this.diagnosticQueue.splice(0, 30);
+    let delivered = false;
     try {
       const r = await fetch(base + "diagnostics", {
         method: "POST",
@@ -175,11 +185,15 @@ export class VoiceConversation {
         body: JSON.stringify({ events }),
         signal: AbortSignal.timeout(5000),
       });
-      if (r.ok) this.diagnosticQueue.splice(0, events.length);
+      delivered = r.ok;
     } catch {
       /* retained locally when the relay is down */
     } finally {
+      if (!delivered)
+        this.diagnosticQueue = [...events, ...this.diagnosticQueue].slice(-100);
       this.flushing = false;
+      if (delivered && this.diagnosticQueue.length)
+        void this.flushDiagnostics();
     }
   }
   exportDiagnostics() {
@@ -222,7 +236,9 @@ export class VoiceConversation {
     for (const fn of this.listeners) fn();
   }
   private fail = (e: unknown) => {
-    this.trace("client", "failed");
+    this.trace("client", "failed", {
+      errorKind: e instanceof Error ? e.name : "Error",
+    });
     if (!this.closed)
       this.update({
         error: e instanceof Error ? e.message : String(e),
@@ -231,6 +247,8 @@ export class VoiceConversation {
   };
   async connect(listen: boolean, takeover = false, audioEnabled = true) {
     this.closed = false;
+    document.addEventListener("visibilitychange", this.visibilityChanged);
+    this.visibilityChanged();
     // Resume directly in the initial user gesture; never silently acquire a mic.
     this.trace("connect", "start");
     if (audioEnabled && listen) {
@@ -318,6 +336,8 @@ export class VoiceConversation {
       generation = this.generation;
       if (action !== "next") this.update({ thinking: true, error: "" });
       this.traceId = requestId;
+      this.utteranceId = undefined;
+      const commandStarted = performance.now();
       this.trace("command", "start");
       const state = await this.rpc({
         action,
@@ -326,7 +346,13 @@ export class VoiceConversation {
         ...extra,
       });
       if (generation !== this.generation || this.closed) return;
-      this.trace("command", "complete");
+      this.utteranceId = state.utterance?.id;
+      this.trace("command", "complete", {
+        durationMs: performance.now() - commandStarted,
+        ...(state.utterance
+          ? { utteranceAgeMs: Math.max(0, Date.now() - state.utterance.at) }
+          : {}),
+      });
       this.update({
         state,
         thinking: false,
@@ -527,13 +553,16 @@ export class VoiceConversation {
       },
       video: false,
     });
-    for (const track of this.stream.getAudioTracks())
+    for (const track of this.stream.getAudioTracks()) {
+      track.onmute = () => this.trace("capture", "muted");
+      track.onunmute = () => this.trace("capture", "unmuted");
       track.onended = () => {
         void this.releaseMic();
         this.update({
           error: "The microphone disconnected. Tap Start Jarvis to reconnect.",
         });
       };
+    }
     if (this.audio.sampleRate !== 16000) {
       await this.releaseMic();
       throw Error(
@@ -568,6 +597,7 @@ export class VoiceConversation {
       if (!this.capturing) {
         this.captureDuringSpeech = this.view.speaking;
         void this.interrupt();
+        this.utteranceId = undefined;
         this.captureId = crypto.randomUUID();
         this.traceId = this.captureId;
         this.trace("capture", "start");
@@ -689,6 +719,7 @@ export class VoiceConversation {
     }
   }
   async releaseMic() {
+    this.trace("capture", "closed");
     this.captureAbort.abort();
     this.worklet?.disconnect();
     this.worklet?.port.close();
@@ -704,6 +735,7 @@ export class VoiceConversation {
     this.update({ listening: false, hearing: false });
   }
   async stop() {
+    document.removeEventListener("visibilitychange", this.visibilityChanged);
     this.closed = true;
     this.interruptLocal();
     await this.releaseMic();

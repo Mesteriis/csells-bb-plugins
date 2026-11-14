@@ -2,6 +2,7 @@
 // arbitrary error strings or audio. Shared by client and relay ingestion.
 const stages = new Set([
   "connect",
+  "page",
   "media",
   "speaker-check",
   "capture",
@@ -16,6 +17,10 @@ const stages = new Set([
 ]);
 const phases = new Set([
   "start",
+  "visible",
+  "hidden",
+  "muted",
+  "unmuted",
   "ready",
   "waiting",
   "first-byte",
@@ -39,6 +44,8 @@ export function diagnostic(input, now = Date.now()) {
       out[key] = input[key];
   for (const key of [
     "durationMs",
+    "clockMs",
+    "utteranceAgeMs",
     "bytes",
     "samples",
     "generation",
@@ -52,6 +59,20 @@ export function diagnostic(input, now = Date.now()) {
   ])
     if (Number.isFinite(input[key]) && input[key] >= 0)
       out[key] = Math.min(input[key], 1e12);
+  if (["visible", "hidden"].includes(input.visibility))
+    out.visibility = input.visibility;
+  if (
+    [
+      "AbortError",
+      "NotAllowedError",
+      "NotReadableError",
+      "NetworkError",
+      "TimeoutError",
+      "TypeError",
+      "Error",
+    ].includes(input.errorKind)
+  )
+    out.errorKind = input.errorKind;
   if (
     ["android", "ios", "mac", "windows", "linux", "unknown"].includes(input.os)
   )

@@ -44,3 +44,12 @@ test("diagnostics survive restart, cap records and expire after one day", (t) =>
   restarted.record({ stage: "relay", phase: "ready" });
   assert.equal(JSON.parse(readFileSync(path)).length, 1);
 });
+
+test("uploaded diagnostics preserve device event time separately from receipt time", (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "jarvis-diag-delay-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const d = createDiagnostics(join(dir, "events.json"), () => 200000);
+  d.record({ stage: "media", phase: "running", at: 80000 });
+  assert.equal(d.snapshot()[0].clientAt, 80000);
+  assert.equal(d.snapshot()[0].at, 200000);
+});

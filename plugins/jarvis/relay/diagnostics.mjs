@@ -12,6 +12,12 @@ export function createDiagnostics(path, now = Date.now) {
   function record(input) {
     const event = diagnostic(input, now());
     if (!event) return;
+    if (
+      Number.isFinite(input.at) &&
+      input.at >= 0 &&
+      input.at <= 8640000000000000
+    )
+      event.clientAt = input.at;
     entries = [...snapshot(), event].slice(-1000);
     try {
       writeFileSync(path + ".next", JSON.stringify(entries), { mode: 0o600 });
