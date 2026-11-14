@@ -88,6 +88,12 @@ Support “Why did we decide that last time?” by retrieving relevant authorize
 
 Acceptance: recall a real prior decision from an accessible BB conversation, verify the explanation against that source, then exercise a later correction and an unavailable source. Confirm unrelated history stays out of worker context and corrected/deleted memories do not return through replay. Do not bulk-import history to satisfy the test.
 
+## Source-backed bootstrap and recovery cases
+
+Use the [research ledger](../research/jarvis-bootstrap-decisions.md) to bootstrap the coordinator: separate execution, verified result and notification delivery; persist operation identities before dispatch; revalidate target generation after asynchronous reads. Apply Qwen notification claims transactionally, with mandatory owner/generation checks. Internal completion events queue without interrupting a busy user turn. Stop inhibits continuations and rechecks late owned descendants while protecting newer adopted-session generations.
+
+For forgetting, commit a content-free suppression identity before purging derived records, summaries, indexes and caches. Keep deletion-pending state on partial failure and resume cleanup after restart; mixed-source summaries must be removed or regenerated without the forgotten fact. Port OpenClaw's purge-phase failure scenarios and Hermes/Moltis compare-before-change cases to BB storage. These additions strengthen the existing requirements; upstream implementations do not prove our acceptance.
+
 ## Implementation sequence and acceptance
 
 - [ ] Implement durable task/decision records, dispatch reconciliation, typed control handlers and a visible task list. Real-worker test proves one request creates one task even across a client retry or reconnect.

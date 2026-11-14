@@ -1,12 +1,16 @@
 # Jarvis plugin delivery plan
 
-Status: ready for implementation; no implementation or promotion authorized by this document. Scope of current task: specifications only.
+Status: implementation authorized by Chris on 2026-11-14; targeted source research complete; initial typed coordination foundation running in disposable staging. Chris required this review before implementation code. Promotion remains gated on approval of the staged candidate. See [staging preflight](../research/jarvis-staging-preflight.md) for verified constraints and the approved staging decision.
 
 Vision: [Jarvis for BB](../vision/jarvis.md).
 
 ## Foundation and reuse
 
 Work on specs/jarvis-vision, based on freshly fetched origin/main at 1c66e84. Preserve unrelated edits in the original checkout. Do not merge origin/eli wholesale. Audit its voice engine, speech formatting, orb/stage, event follower, and tests for selective reuse against the current installed SDK. Main's read-aloud fixes postdate that branch; do not reintroduce its older Edge synthesis assumptions. Use BB-owned thread UI and lifecycle APIs rather than a separate agent runtime.
+
+## Research-backed bootstrap
+
+Use the [bootstrap decisions and reuse ledger](../research/jarvis-bootstrap-decisions.md) as the implementation starting point. Selectively reuse existing BB speech/UI code and adapt Qwen's small turn-correlation and notification-claim modules with provenance and tests. Evaluate Pipecat's existing semantic detector before inventing one. Apply OpenClaw/Hermes/Happy/Moltis recovery, approval and memory invariants through BB APIs; keep BB as the execution and scheduling runtime. The source research establishes donor choices, not a live candidate pass.
 
 ## Planned delivery order
 
@@ -17,7 +21,7 @@ Work on specs/jarvis-vision, based on freshly fetched origin/main at 1c66e84. Pr
 5. Add durable personal memory and proactive coordination according to the interview decisions. Keep user intent separate from worker output and external content. Bound context and event replay; avoid recursive notification loops.
 6. Verify the actual plugin end to end in disposable staging against the real lab; present a reviewable candidate. Promotion requires Chris's explicit approval of that candidate. After approved promotion and production verification, preserve source/evidence/rollback artifacts outside staging, remove dedicated VM/disks/credentials/exposure routes, release reservations, and retire records.
 
-Detailed implementation and acceptance criteria are in [conversation and speech](0002-jarvis-conversation-and-speech.md), [coordination, control, and memory](0003-jarvis-coordination-and-memory.md), and [events and scheduled follow-ups](0004-jarvis-events-and-scheduled-follow-ups.md). No service code or stable installation is changed by this specifications task.
+Detailed implementation and acceptance criteria are in [conversation and speech](0002-jarvis-conversation-and-speech.md), [coordination, control, and memory](0003-jarvis-coordination-and-memory.md), and [events and scheduled follow-ups](0004-jarvis-events-and-scheduled-follow-ups.md). The specification phase changed no service code or stable installation. Implementation now follows the staging gate below.
 
 ## Pocket discovery and verification — 2026-11-14
 
