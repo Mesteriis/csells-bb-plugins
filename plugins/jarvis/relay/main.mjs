@@ -45,6 +45,7 @@ const model = createTalker({
     ? () => JSON.parse(readFileSync(config.poolTokenPath, "utf8")).value
     : process.env.BB_ACCOUNT_POOL_PARENT_TOKEN,
   model: config.talkerModel,
+  onTiming: (timing) => console.log(JSON.stringify({stage:"model",at:new Date().toISOString(),...timing})),
 });
 mkdirSync(dirname(config.journal), { recursive: true, mode: 0o700 });
 // The exclusive loopback listener is the single-writer lock. Journal reads

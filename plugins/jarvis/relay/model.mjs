@@ -1,10 +1,12 @@
 // Model-only inference through BB's existing account pool. No shell, browser,
 // filesystem, MCP or agent tools are offered to this conversational model.
 // The inherited credential remains on the BB host and is never sent to staging.
-export function createTalker({ baseUrl, token, model = "gpt-6.1-sol" }) {
+export function createTalker({ baseUrl, token, model = "gpt-6.1-sol", onTiming = () => {} }) {
   if (!baseUrl || !token)
     throw Error("The talker needs the host’s existing BB account-pool route");
   return async function complete({ instructions, input, signal }) {
+    const started = performance.now();
+    let firstTextMs;
     const response = await fetch(`${baseUrl.replace(/\/$/, "")}/v1/responses`, {
       method: "POST",
       signal: AbortSignal.any([
@@ -45,7 +47,7 @@ export function createTalker({ baseUrl, token, model = "gpt-6.1-sol" }) {
             if (raw === "[DONE]") continue;
             const event = JSON.parse(raw);
             if (event.type === "response.output_text.delta")
-              output += event.delta;
+              { if (firstTextMs === undefined) firstTextMs = performance.now() - started; output += event.delta; }
             if (event.type === "response.completed") completed = true;
             if (event.type === "error" || event.type === "response.failed")
               throw Error("Conversational model failed");
@@ -56,6 +58,7 @@ export function createTalker({ baseUrl, token, model = "gpt-6.1-sol" }) {
     }
     if (!completed || !output.trim())
       throw Error("Conversational reply was interrupted");
+    onTiming({durationMs:Math.round(performance.now()-started), firstTextMs:Math.round(firstTextMs ?? 0), inputChars:input.length, outputChars:output.length});
     return output.trim();
   };
 }

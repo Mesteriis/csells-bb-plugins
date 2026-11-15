@@ -93,3 +93,23 @@ test('lost spawn reply recovers only from the exact original BB event',async()=>
   const recovered=await f.make().reconcile({operationId:'one'});
   assert.equal(recovered.threadId,'real');assert.equal(recovered.dispatch,'accepted');assert.equal(dispatches,1);
 });
+
+test('steering is owned, durable and never resends an uncertain message',async()=>{
+ let sends=0;const f=fixture({send:async()=>{sends++;throw Error('lost response');}});const c=f.make();
+ await c.delegate({operationId:'one',prompt:'Research'});
+ const input={operationId:'one',requestId:'direction-one',message:'Summarize only the main finding.'};
+ assert.equal((await c.steer(input)).state,'unknown');assert.equal((await f.make().steer(input)).state,'unknown');assert.equal(sends,1);
+ await assert.rejects(c.steer({...input,message:'Different direction'}),/reused/);
+ await assert.rejects(c.steer({...input,operationId:'unrelated'}),/Unknown task/);assert.equal(sends,1);
+ const state=await f.store.read();state.tasks.one.dispatchEnabled=false;await f.store.write(state);
+ await assert.rejects(c.steer({...input,requestId:'new-direction'}),/Stopped/);
+});
+
+test('steering uses the public BB structured message contract',async()=>{
+ let sent;const f=fixture({send:async args=>{sent=args;}}),c=f.make();
+ await c.delegate({operationId:'task',prompt:'Check status'});
+ const r=await c.steer({operationId:'task',requestId:'direction',message:'Report what you found'});
+ assert.equal(r.state,'accepted');assert.equal(sent.mode,'auto');
+ assert.deepEqual(sent.input,[{type:'text',text:'Report what you found',mentions:[]}]);
+ assert.equal(sent.message,undefined);
+});

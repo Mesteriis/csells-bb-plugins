@@ -1,0 +1,12 @@
+export const livekitPage = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jarvis</title>
+<style>body{font:18px system-ui;background:#121212;color:#eee;max-width:800px;margin:auto;padding:20px;box-sizing:border-box}h1{font-size:30px}button,input{font:inherit;min-height:48px;padding:12px 16px;border-radius:12px;border:1px solid #777;background:#252525;color:white;box-sizing:border-box}button{margin:5px 5px 5px 0;cursor:pointer}#start{background:#22644f}button:disabled{opacity:.45;cursor:default}#state{font-size:25px;margin:20px 0}#error{color:#ffbdab}#answer,#question{white-space:pre-wrap;line-height:1.55;margin-top:20px}#question:empty{display:none}#question{border:1px solid #7b9b90;border-radius:12px;padding:16px}small,#mode{color:#bbb}audio{display:none}form{display:flex;gap:8px;margin:20px 0}input{min-width:0;flex:1}form button{margin:0}details{margin-top:20px}.task{padding:12px;border:1px solid #555;border-radius:10px;margin:8px 0;overflow-wrap:anywhere}</style>
+<h1>Jarvis</h1><p>Get a briefing, stay up to date, and answer your agents by voice.</p>
+<button id="start">Start Jarvis</button><button id="text-start">Use text</button><button id="end" disabled>End conversation</button><button id="audio" hidden>Enable audio</button>
+<div id="state" role="status">Ready</div><div id="mode"></div><div id="error" role="alert"></div>
+<div><button id="brief" disabled>Brief me</button><button id="questions" disabled>What needs me?</button><button id="watch" disabled>Keep me updated</button></div>
+<div><button id="mic" disabled>Microphone off</button><button id="quiet" disabled>Quiet updates</button><button id="stop" disabled>Stop speaking</button><button id="stop-work" disabled>Stop delegated work</button></div>
+<div id="heard"></div><div id="question"></div><div id="answer"></div>
+<form id="text-form"><input id="draft" aria-label="Message to Jarvis" placeholder="Talk or type to Jarvis" maxlength="8000"><button id="send" disabled>Send</button></form>
+<details><summary>Delegated work</summary><div id="tasks">Start Jarvis to see delegated work.</div></details>
+<details><summary>Diagnostics</summary><p><small>Text may include words you interrupted before hearing. Closing this panel ends the conversation.</small></p><button id="diagnostics">Download diagnostics</button></details>
+<div id="media"></div><script src="livekit-browser.js" onerror="document.getElementById('error').textContent='Jarvis could not load. Reload this panel to retry.'"></script></html>`;

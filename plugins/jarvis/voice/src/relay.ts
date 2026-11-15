@@ -3,12 +3,14 @@ import { ReadableStream, type ReadableStreamReadResult } from 'node:stream/web';
 import { mergeFrames, asLanguageCode, stt, voice, DEFAULT_API_CONNECT_OPTIONS, type AudioBuffer, llm } from '@livekit/agents';
 import { AudioFrame } from '@livekit/rtc-node';
 
-export type State = {owner?: {leaseKey: string}; focus?: {binding: string; displayText: string}; utterance?: {id: string; text: string; playbackClaim: string}};
+export type State = {watch?:boolean; quiet?:boolean; pending?:number; owner?: {leaseKey: string}; focus?: {binding: string; displayText: string}; utterance?: {id: string; kind?:string; text: string; playbackClaim: string}};
 export type EventSink = (phase: string, detail?: Record<string, unknown>) => void;
 export class Relay {
   readonly clientId = randomUUID();
   lease = '';
   focus?: string;
+  activeSpeech?: voice.SpeechHandle;
+  busy = 0;
   constructor(readonly token: string, readonly event: EventSink) {}
   headers() { return {authorization: this.token, 'x-jarvis-client': this.clientId, 'x-jarvis-lease': this.lease}; }
   async request(path: string, body: BodyInit, contentType: string, signal?: AbortSignal) {
@@ -25,11 +27,25 @@ export class Relay {
     const r = await this.request('assistant', JSON.stringify({action, clientId:this.clientId, ...args}), 'application/json', signal);
     const state = await r.json() as State;
     this.lease = state.owner?.leaseKey ?? this.lease;
+    this.event("conversation-state", {watch:state.watch,quiet:state.quiet,pending:state.pending});
     return state;
+  }
+  async acknowledge(state: State, status: 'delivered'|'interrupted'|'failed') {
+    if(!state.utterance)return;
+    try {await this.command('ack',{utteranceId:state.utterance.id,playbackClaim:state.utterance.playbackClaim,status});}
+    catch {this.event('delivery-superseded',{utteranceId:state.utterance.id});}
+  }
+  track(state:State,speech?:voice.SpeechHandle) {
+    if(!speech)return;
+    void speech.waitForPlayout().then(async()=>{
+      const status=speech.interrupted?'interrupted':speech.exception()?'failed':'delivered';
+      this.event('playout-ended',{interrupted:speech.interrupted,utteranceId:state.utterance?.id});
+      await this.acknowledge(state,status);
+    }).catch(()=>this.acknowledge(state,'failed'));
   }
   present(state: State) {
     this.focus = state.focus?.binding;
-    this.event('response', {text:state.utterance?.text ?? '', question:state.focus?.displayText ?? '', utteranceId:state.utterance?.id});
+    this.event('response', {kind:state.utterance?.kind,text:state.utterance?.text ?? '', question:state.focus?.displayText ?? '', utteranceId:state.utterance?.id});
   }
 }
 
@@ -129,9 +145,14 @@ class BBDirectorStream extends llm.LLMStream {
     const text=message?.type==='message'?message.textContent:undefined;
     if(!text)return;
     const relay=this.director.relay;
-    const state=await relay.command('talk',{text,...(relay.focus?{presentedQuestion:relay.focus}:{})},this.abortController.signal);
-    relay.present(state);
-    if(state.utterance)this.queue.put({id:state.utterance.id,delta:{role:'assistant',content:state.utterance.text}});
+    const speech=relay.activeSpeech;
+    relay.busy++;
+    try {
+      const state=await relay.command('talk',{text,requestId:randomUUID(),...(relay.focus?{presentedQuestion:relay.focus}:{})},this.abortController.signal);
+      relay.present(state); relay.track(state,speech);
+      if(state.utterance)this.queue.put({id:state.utterance.id,delta:{role:'assistant',content:state.utterance.text}});
+    } finally {relay.busy--;}
+
   }
 }
 export class JarvisAgent extends voice.Agent {
@@ -163,10 +184,7 @@ export class JarvisAgent extends voice.Agent {
     const text = new ReadableStream<string>({start(c){c.enqueue(item.text);c.close();}});
     const audio = await this.ttsNode(text);
     const speech = this.session.say(item.text, {audio, allowInterruptions:true});
-    // Framework completion measures transport playout, not physical audibility.
+    this.relay.track(state,speech);
     await speech.waitForPlayout();
-    this.relay.event('playout-ended', {interrupted:speech.interrupted, utteranceId:item.id});
-    // Never mark a question heard from server playout alone. The UI carries its
-    // exact binding; directed answers are separately validated by the BB relay.
   }
 }

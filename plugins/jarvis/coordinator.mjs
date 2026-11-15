@@ -52,7 +52,7 @@ export function createCoordinator({sdk, store, config}) {
         const row = await sdk.threads.spawn({
           projectId:config.projectId, environment:{type:'reuse',environmentId:config.environmentId},
           providerId:config.providerId, origin:'sdk', visibility:'visible',
-          title:`Jarvis test ${config.owner} ${operationId}`,
+          title:`Jarvis · ${prompt.split(/[.!?]\s|\n/)[0].replace(/\s+/g," ").slice(0,100)}`,
           prompt:`Jarvis task correlation: ${t.correlation}\n\n${prompt}`, parentNotifications:'off',
         });
         t.threadId = row.id;
@@ -164,6 +164,24 @@ export function createCoordinator({sdk, store, config}) {
       await store.write(state); return {...t.decisions[interactionId]};
     });
   }
-  return {delegate,reconcile,sessions,inspect,stop,decide,
+  async function steer({operationId, requestId, message}) {
+    text(operationId,'operationId',80);text(requestId,'requestId',80);text(message,'message');
+    if(!/^[a-zA-Z0-9_-]+$/.test(requestId))throw Error('Invalid requestId');
+    return serial(async()=>{
+      const state=await load(),t=task(state,operationId);await ownedThread(t);
+      if(!t.dispatchEnabled)throw Error('Stopped task cannot be steered');
+      t.steers??={};const fingerprint=hash({message});
+      if(Object.hasOwn(t.steers,requestId)){
+        if(t.steers[requestId].fingerprint!==fingerprint)throw Error('Request id reused with different direction');
+        return {...t.steers[requestId]};
+      }
+      if(Object.keys(t.steers).length>=100)throw Error('Task direction capacity reached');
+      const receipt={fingerprint,state:'unknown'};t.steers[requestId]=receipt;
+      await store.write(state);
+      try{await sdk.threads.send({threadId:t.threadId,mode:"auto",input:[{type:"text",text:message,mentions:[]}]});receipt.state='accepted';}catch{}
+      await store.write(state);return {...receipt};
+    });
+  }
+  return {delegate,reconcile,sessions,inspect,stop,decide,steer,
     tasks:()=>serial(async()=>Promise.all(Object.values((await load()).tasks).map(snapshot)))};
 }

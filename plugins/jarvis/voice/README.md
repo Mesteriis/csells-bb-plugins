@@ -1,6 +1,6 @@
-# LiveKit conversation spike
+# LiveKit voice companion
 
-A disposable, self-hosted TypeScript companion for the Jarvis BB plugin. It uses
+A self-hosted TypeScript companion for the Jarvis BB plugin. It uses
 LiveKit Agents 1.10.0, rtc-node 1.2.2, browser client 2.24.1, and LiveKit Server
 1.13.11. No Python voice worker or LiveKit Cloud credential is required.
 
@@ -28,7 +28,7 @@ services in the disposable VM; do not install the candidate in stable BB.
 ONNXRUNTIME_NODE_INSTALL=skip npm ci
 npm run build
 npm test
-JARVIS_LIVEKIT_CONFIG=/private/path/livekit-private.json npm start
+JARVIS_VOICE_CONFIG=/private/path/livekit-private.json npm start
 ```
 
 `ONNXRUNTIME_NODE_INSTALL=skip` skips optional CUDA binaries, not CPU inference or
@@ -60,11 +60,13 @@ changing its HTTP/signaling routes. The browser bundle is served by the companio
 ## Evidence and limits
 
 See `specs/research/jarvis-livekit-spike.md` in the repository for measured checks
-and outstanding device acceptance. This is a conversation transport spike, not
+and outstanding device acceptance. This is an integrated staging candidate, not
 completion of the full Jarvis vision. In particular, batch STT is still batch,
 semantic interruption detection and enhanced cloud noise filters are not enabled,
-continuous watched-update polling is not wired into this spike, and the external
-BB director retains generated-text history rather than an exact heard transcript.
+the external BB director retains generated-text history rather than an exact heard
+transcript. The integrated companion polls for updates while idle, revalidates
+questions and keeps quiet-mode updates pending. It accepts typed input through
+the same director, displays delegated work, and exposes separate speech/work stops.
 
 The page displays generated text and the current bound question. Displayed text
 and server playout do not prove physical audibility. Browser diagnostics contain
@@ -73,3 +75,11 @@ latency measurements; periodic media counters are also in the companion journal.
 There is no persisted microphone recording. Actual Android/Bluetooth behavior,
 backgrounding, route changes, prolonged cellular loss and acoustic echo remain
 separate acceptance checks.
+
+The BB panel embeds this same authenticated page. Install the companion using
+[deploy/bb-jarvis-voice.service.example](deploy/bb-jarvis-voice.service.example),
+adjusting absolute paths to the candidate. Health is an authenticated loopback
+GET `/health` on port 4846. End or panel closure releases the room and lease;
+heartbeat loss expires abandoned clients within 90 seconds. A concurrent start
+returns a visible conflict rather than silently taking over another conversation.
+Integration results are in `specs/research/jarvis-livekit-integration.md`.

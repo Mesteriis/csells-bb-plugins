@@ -212,3 +212,8 @@ constitute approval to promote the plugin to stable.
   [pinned server release](https://github.com/livekit/livekit/releases/tag/v1.13.11).
 - The broader OSS comparison and Python/Node decision are in
   [oss-conversation-stack-recommendation.md](oss-conversation-stack-recommendation.md).
+
+
+The next integrated candidate is recorded in
+[jarvis-livekit-integration.md](jarvis-livekit-integration.md). Its code now lives
+in `plugins/jarvis/voice/`; historical spike measurements above are unchanged.

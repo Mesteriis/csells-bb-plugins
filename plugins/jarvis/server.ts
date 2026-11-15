@@ -1,5 +1,5 @@
-import {registerLiveKitSignaling} from "./spikes/livekit/signaling";
-import {livekitPage} from "./spikes/livekit/page.mjs";
+import {registerLiveKitSignaling} from "./voice/signaling";
+import {livekitPage} from "./voice/page.mjs";
 import {pipecatPage} from "./spikes/pipecat/page.mjs";
 import {duplexPage} from "./spikes/duplex-page.mjs";
 import {duplexVoice} from "./spikes/duplex-voice.mjs";
@@ -58,7 +58,7 @@ export const rpcContract = defineRpcContract({
       playbackClaim: z.string().uuid().optional(),
       presentedQuestion: z.string().max(300).optional(),
       utteranceId: z.string().uuid().optional(),
-      status: z.enum(["played", "interrupted", "failed"]).optional(),
+      status: z.enum(["played", "delivered", "interrupted", "failed"]).optional(),
     }),
     output: z.unknown(),
   },
@@ -142,7 +142,7 @@ export default async function plugin(bb: BbPluginApi) {
       const r=await fetch("http://127.0.0.1:4846/browser.js",{headers:{authorization:`Bearer ${config.relayToken}`},signal:AbortSignal.timeout(10000)});
       return new Response(r.body,{status:r.status,headers:{"content-type":"application/javascript","cache-control":"no-store"}});
     }, {auth:"local"});
-    for (const action of ["session", "ready", "heartbeat", "close", "stop-speaking", "telemetry"]) {
+    for (const action of ["session", "ready", "heartbeat", "close", "stop-speaking", "telemetry", "command", "text", "tasks"]) {
       bb.http.route("POST", `/livekit-${action}`, async (context) => {
         const raw=await context.req.text();
         if(raw.length>8192) return context.text("Request too large",413);

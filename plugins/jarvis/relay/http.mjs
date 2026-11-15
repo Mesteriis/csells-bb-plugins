@@ -27,6 +27,7 @@ export function createRelayServer({
     "reconcile",
     "stop",
     "decide",
+    "steer",
   ]);
   return createServer(
     { requestTimeout: 15000, headersTimeout: 10000, maxHeaderSize: 8192 },
@@ -198,6 +199,7 @@ export function createRelayServer({
           delegate: ["operationId", "prompt"],
           reconcile: ["operationId"],
           stop: ["operationId"],
+          steer: ["operationId", "requestId", "message"],
           decide: ["operationId", "interactionId", "revision", "decision"],
         }[method];
         if (Object.keys(input).some((key) => !keys.includes(key)))

@@ -7,7 +7,9 @@ import { Room, RoomEvent } from '@livekit/rtc-node';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import { BBSTT, BBDirector, JarvisAgent, Relay } from './relay.js';
 initializeLogger({pretty:false, level:'warn'});
-const config = JSON.parse(await readFile(process.env.JARVIS_LIVEKIT_CONFIG ?? '/home/tester/jarvis/livekit-private.json','utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string};
+const configPath=process.env.JARVIS_VOICE_CONFIG??process.env.JARVIS_LIVEKIT_CONFIG;
+if(!configPath)throw Error("Set JARVIS_VOICE_CONFIG to the private companion configuration file");
+const config = JSON.parse(await readFile(configPath,'utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string};
 const rooms = new RoomServiceClient('http://127.0.0.1:7880',config.apiKey,config.apiSecret);
 const vad = await VAD.load();
 const sessions = new Map<string, Connection>();
@@ -27,7 +29,7 @@ class Connection {
   room = new Room(); relay = new Relay(`Bearer ${config.relayToken}`, (p,d)=>this.event(p,d));
   agent = new JarvisAgent(this.relay);
   session = new voice.AgentSession({vad,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
-  ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout;
+  ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout; watcher?:NodeJS.Timeout; polling=false; backgroundEpoch=0; commandBusy=false;
   event(phase:string,detail:Record<string,unknown>={}) {
     log(this.id,phase,detail);
     if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
@@ -37,8 +39,12 @@ class Connection {
     await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});
     await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});
     this.room.on(RoomEvent.ParticipantDisconnected, p=>{if(p.identity===this.identity) void this.close();});
+    this.session.on(voice.AgentSessionEventTypes.SpeechCreated,e=>{this.relay.activeSpeech=e.speechHandle;});
     this.session.on(voice.AgentSessionEventTypes.AgentStateChanged,e=>this.event('agent-state',{state:e.newState}));
-    this.session.on(voice.AgentSessionEventTypes.UserStateChanged,e=>this.event('user-state',{state:e.newState}));
+    this.session.on(voice.AgentSessionEventTypes.UserStateChanged,e=>{
+      this.event('user-state',{state:e.newState});
+      if(e.newState==='speaking')this.backgroundEpoch++;
+    });
     this.session.on(voice.AgentSessionEventTypes.AgentFalseInterruption,()=>this.event('false-interruption-resumed'));
     this.session.on(voice.AgentSessionEventTypes.Error,()=>this.event('error',{text:'Voice pipeline failed. End and restart the conversation.',kind:'pipeline'}));
     this.session.on(voice.AgentSessionEventTypes.Close,()=>{if(!this.closed) void this.close();});
@@ -56,12 +62,36 @@ class Connection {
   async start() {
     if(this.started) return;
     this.started=true; await this.ready;
-    this.event('briefing');
-    await this.agent.speakState(await this.relay.command('brief'));
+    this.commandBusy=true;
+    try {
+      const watching=await this.relay.command('watch',{enabled:true});
+      await this.relay.acknowledge(watching,'delivered');
+      this.event('briefing');
+      await this.agent.speakState(await this.relay.command('brief'));
+    } finally {this.commandBusy=false;}
+    this.watcher=setInterval(()=>void this.poll(),3000);
+  }
+  idle() {return !this.closed && !this.commandBusy && !this.relay.busy && this.session.agentState==='listening' && this.session.userState!=='speaking' && (!this.relay.activeSpeech || this.relay.activeSpeech.done());}
+  async poll() {
+    if(!this.idle() || this.polling)return;
+    this.polling=true; const epoch=this.backgroundEpoch;
+    try {
+      const state=await this.relay.command('next');
+      // User speech takes priority. Unclaimed updates remain pending in the relay
+      // and are refreshed/revalidated before a subsequent delivery attempt.
+      if(epoch===this.backgroundEpoch && this.idle() && state.utterance)await this.agent.speakState(state);
+    } catch {if(!this.closed)this.event('update-error',{text:'Updates could not refresh; retrying automatically.'});}
+    finally {this.polling=false;}
+  }
+  async command(action:string,args:Record<string,unknown>={}) {
+    if(this.commandBusy)throw Error('Another command is still running');
+    this.backgroundEpoch++;this.commandBusy=true;
+    try {this.session.interrupt();await this.agent.speakState(await this.relay.command(action,args));}
+    finally {this.commandBusy=false;}
   }
   async close() {
     if(this.closed) return; this.closed=true;
-    clearInterval(this.heartbeat); sessions.delete(this.id);
+    clearInterval(this.heartbeat); clearInterval(this.watcher); sessions.delete(this.id);
     this.event('closing');
     await Promise.allSettled([this.session.close(),this.relay.command('close')]);
     await this.room.disconnect().catch(()=>{});
@@ -92,6 +122,18 @@ const server=createServer(async(req,res)=>{
     if(!c||!equal(String(body.controlToken??''),c.secret)){send(403,{error:'Conversation expired'});return;}
     c.touched=Date.now();
     if(req.url==='/ready'){void c.start().catch(()=>c.event('error',{kind:'brief',text:'Jarvis could not prepare the briefing.'}));send(200,{ok:true});return;}
+    if(req.url==='/text'){
+      if(typeof body.text!=='string'||!body.text.trim()||body.text.length>8000){send(400,{error:'Enter a message of at most 8000 characters.'});return;}
+      c.backgroundEpoch++;c.session.interrupt();c.session.generateReply({userInput:body.text});send(200,{ok:true});return;
+    }
+    if(req.url==='/command'){
+      if(!['brief','questions','watch','quiet','stop-work'].includes(String(body.action))){send(400,{error:'Unknown command'});return;}
+      if(['watch','quiet'].includes(String(body.action))&&typeof body.enabled!=='boolean'){send(400,{error:'Invalid mode'});return;}
+      void c.command(body.action==='stop-work'?'talk':String(body.action),body.action==='stop-work'?{text:'stop work'}:['watch','quiet'].includes(String(body.action))?{enabled:body.enabled}:{}).catch(()=>c.event('error',{kind:'command',text:'Command failed; inspect the current state before retrying.'}));send(200,{ok:true});return;
+    }
+    if(req.url==='/tasks'){
+      const r=await c.relay.request('tasks','{}','application/json');send(200,await r.json());return;
+    }
     if(req.url==='/telemetry'){
       const detail=body.detail&&typeof body.detail==='object'?body.detail as Record<string,unknown>:{};
       const safe=Object.fromEntries(Object.entries(detail).filter(([,v])=>typeof v==='boolean'||(typeof v==='number'&&Number.isFinite(v))));
@@ -101,7 +143,7 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/close'){await c.close();send(200,{ok:true});return;}
     if(req.url==='/stop-speaking'){c.session.interrupt();send(200,{ok:true});return;}
     send(404,{error:'Not found'});
-  } catch(e) {log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'LiveKit spike request failed; check staging logs.'});}
+  } catch(e) {log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'Voice request failed; check Jarvis diagnostics.'});}
 });
 server.listen(4846,'127.0.0.1',()=>log('service','ready'));
 for(const signal of ['SIGTERM','SIGINT']) process.on(signal,()=>{server.close();void Promise.allSettled([...sessions.values()].map(c=>c.close())).finally(()=>process.exit(0));});

@@ -24,10 +24,23 @@ Pipecat https://github.com/pipecat-ai/pipecat at `1bc2e37b15566cd34bb6941a335ce0
 - `turn/server.py` is a new loopback-only CPU HTTP adapter following upstream `local_smart_turn_v3.py`: 16 kHz mono, last eight seconds, left-zero padding, normalized Whisper features, single-thread ONNX inference, and the upstream 0.5 completeness threshold.
 - Staging uses the unmodified upstream `smart-turn-v3.2-cpu.onnx` model. The model is separately provisioned, not embedded in the plugin bundle. Model source and BSD-2-Clause license: https://huggingface.co/pipecat-ai/smart-turn-v3 and https://github.com/pipecat-ai/smart-turn.
 
-No LiveKit model weights are used. Pocket/Alfred remains the registered lab service; Jarvis does not redistribute its model or voice data.
+The earlier Smart Turn adapter does not use LiveKit model weights. Pocket/Alfred remains the registered lab service; Jarvis does not redistribute its model or voice data.
 
 `relay/questions.mjs` implements the public BB 0.49 `provider-codex/async-question` data contract, verified against the installed renderer and server. It uses BB's question/option IDs and `threads.interactions.respond`; it does not embed the provider implementation or accept arbitrary plugin response schemas.
 
 ## Pipecat round-trip spike (2026-11-14)
 
 `spikes/pipecat/server.py` integrates the actual Pipecat library at `1bc2e37b15566cd34bb6941a335ce09c3bbbab8c` (BSD-2-Clause; existing notice in `third-party/pipecat/LICENSE`). It uses SmallWebRTCTransport, VADProcessor/Silero, PipelineWorker and interruption/output frames through public interfaces. Adapter and page code are local. Matching source and resolved Python dependencies are preserved outside the disposable VM in task storage. Coturn is installed from Debian's package for the isolated staging relay; no coturn code is copied into this repository. This transport spike does not change the existing Smart Turn model license/provenance entry.
+
+## Integrated LiveKit voice (2026-11-15)
+
+`voice/` uses published LiveKit packages through their public TypeScript APIs:
+Agents 1.10.0, agents-plugin-silero 1.10.0, rtc-node 1.2.2, livekit-client 2.24.1,
+and livekit-server-sdk 2.19.3 (Apache-2.0 package licenses). The lockfile pins
+resolved dependencies. LiveKit Server 1.13.11 is separately installed in staging;
+its server source is not copied into this repository. Silero inference/model
+assets arrive through the official plugin dependency, not vendored application
+code. Local adapters implement BB STT/director/Alfred framing and restricted
+staging policy; LiveKit owns media transport and conversational interruption.
+Earlier Pipecat and browser-audio source remains historical and is not used by
+the integrated panel.

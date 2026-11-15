@@ -5,6 +5,7 @@ const clientId = "11111111-1111-4111-8111-111111111111";
 const other = "22222222-2222-4222-8222-222222222222";
 function fixture({
   owned = true,
+  taskPrompt,
   interaction = null,
   allowWatchedReplies = false,
   model = async () => "Here is your briefing.",
@@ -49,7 +50,7 @@ function fixture({
     },
   };
   const coordinator = {
-    tasks: async () => (owned ? [{ threadId: "thread" }] : []),
+    tasks: async () => (owned ? [{ threadId: "thread", prompt:taskPrompt }] : []),
   };
   const make = () =>
     createDirector({ sdk, store, coordinator, model, allowWatchedReplies });
@@ -417,3 +418,29 @@ test("a contextual spoken answer reaches the focused question without invented o
     freeText: text,
   });
 });
+
+test('a complete chat response uses one model call and performs no control action',async()=>{
+ let count=0;const f=fixture({model:async()=>{count++;return JSON.stringify({action:'chat',reply:'Two plus two is four.'});}});
+ await f.command('start');const result=await f.command('talk',{text:'What is two plus two?'});
+ assert.equal(result.utterance.text,'Two plus two is four.');assert.equal(count,1);assert.equal(f.calls.length,0);
+});
+test('transport delivery consumes an update without authorizing an unheard question',async()=>{
+ const f=fixture();await f.command('start');await f.command('watch',{enabled:true});f.change();
+ const update=await f.command('next');assert.ok(update.utterance);
+ await f.command('ack',{utteranceId:update.utterance.id,status:'delivered'});
+ assert.equal((await f.command('next')).utterance,undefined);
+ await f.command('answer',{text:'Use blue'});assert.equal(f.calls.length,0);
+});
+test('quiet watching retains changes and refreshes obsolete questions before replay',async()=>{
+ const f=fixture();await f.command('start');await f.command('watch',{enabled:true});await f.command('quiet',{enabled:true});f.change();
+ assert.equal((await f.command('next')).utterance,undefined);assert.ok(f.saved().pending.length);
+ await f.command('quiet',{enabled:false});const first=await f.command('next');assert.ok(first.utterance);
+ f.row.status='active';f.sdk.threads.output=async()=>({output:'The task is running; no question remains.'});f.change();
+ const fresh=await f.command('next');assert.notEqual(fresh.utterance?.id,first.utterance.id);assert.equal(fresh.focus,null);
+});
+
+ test('a delegated task can be focused by its original request when its BB title differs',async()=>{
+ const f=fixture({taskPrompt:'Run the Violet Lantern check',model:async()=>JSON.stringify({action:'focus',threadTitle:'Violet Lantern'})});
+ await f.command('start');const r=await f.command('talk',{text:'Switch to Violet Lantern'});
+ assert.equal(r.focus.threadId,'thread');assert.match(r.utterance.text,/Which branch/);assert.equal(f.calls.length,0);
+ });

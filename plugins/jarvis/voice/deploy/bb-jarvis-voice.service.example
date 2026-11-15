@@ -1,0 +1,19 @@
+# Substitute the three operator-selected paths and the service account below.
+[Unit]
+Description=BB Jarvis voice companion
+After=network-online.target
+[Service]
+User=SERVICE_USER
+WorkingDirectory=/ABSOLUTE/PATH/TO/jarvis/voice
+Environment=JARVIS_VOICE_CONFIG=/ABSOLUTE/PRIVATE/PATH/voice.json
+ExecStart=/ABSOLUTE/PATH/TO/node dist/server.js
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+MemoryMax=650M
+[Install]
+WantedBy=multi-user.target
