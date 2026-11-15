@@ -1,0 +1,19 @@
+{
+  "name": "jarvis-livekit-spike",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=24"},
+  "scripts": {
+    "build": "tsc && esbuild src/browser.ts --bundle --format=iife --target=es2022 --outfile=dist/browser.bundle.js",
+    "start": "node dist/server.js",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@livekit/agents": "1.10.0",
+    "@livekit/agents-plugin-silero": "1.10.0",
+    "@livekit/rtc-node": "1.2.2",
+    "livekit-client": "2.24.1",
+    "livekit-server-sdk": "2.19.3"
+  },
+  "devDependencies": {"typescript": "5.9.3", "@types/node": "24.10.1", "esbuild": "0.25.12"}
+}

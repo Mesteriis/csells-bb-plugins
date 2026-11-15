@@ -1,0 +1,107 @@
+import { createServer, type IncomingMessage } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { randomUUID, randomBytes, timingSafeEqual, createHmac } from 'node:crypto';
+import { initializeLogger, voice } from '@livekit/agents';
+import { VAD } from '@livekit/agents-plugin-silero';
+import { Room, RoomEvent } from '@livekit/rtc-node';
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { BBSTT, BBDirector, JarvisAgent, Relay } from './relay.js';
+initializeLogger({pretty:false, level:'warn'});
+const config = JSON.parse(await readFile(process.env.JARVIS_LIVEKIT_CONFIG ?? '/home/tester/jarvis/livekit-private.json','utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string};
+const rooms = new RoomServiceClient('http://127.0.0.1:7880',config.apiKey,config.apiSecret);
+const vad = await VAD.load();
+const sessions = new Map<string, Connection>();
+function equal(a:string,b:string) { const x=Buffer.from(a),y=Buffer.from(b); return x.length===y.length && timingSafeEqual(x,y); }
+function log(session:string,phase:string,detail:Record<string,unknown>={}) {
+  const safe = Object.fromEntries(Object.entries(detail).filter(([k])=>['durationMs','audioMs','state','interrupted','reason','kind','bytesReceived','packetsLost','jitter','audioLevel','totalAudioEnergy','totalSamplesDuration','playbackAllowed','micEnabled'].includes(k)));
+  console.log(JSON.stringify({at:new Date().toISOString(),session,phase,...safe}));
+}
+async function jwt(room:string,identity:string,agent=false) {
+  const token = new AccessToken(config.apiKey,config.apiSecret,{identity,ttl:'5m',name:agent?'Jarvis':'Chris'});
+  token.addGrant({roomJoin:true,room,canPublish:true,canSubscribe:true,canPublishData:true, ...(agent?{agent:true,canUpdateOwnMetadata:true}:{canPublishSources:[2]})});
+  return token.toJwt();
+}
+class Connection {
+  id = randomUUID(); secret = randomBytes(32).toString('hex');
+  name = `jarvis-${this.id}`; identity = `user-${this.id}`;
+  room = new Room(); relay = new Relay(`Bearer ${config.relayToken}`, (p,d)=>this.event(p,d));
+  agent = new JarvisAgent(this.relay);
+  session = new voice.AgentSession({vad,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
+  ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout;
+  event(phase:string,detail:Record<string,unknown>={}) {
+    log(this.id,phase,detail);
+    if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
+  }
+  async open() {
+    await this.relay.command('start');
+    await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});
+    await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});
+    this.room.on(RoomEvent.ParticipantDisconnected, p=>{if(p.identity===this.identity) void this.close();});
+    this.session.on(voice.AgentSessionEventTypes.AgentStateChanged,e=>this.event('agent-state',{state:e.newState}));
+    this.session.on(voice.AgentSessionEventTypes.UserStateChanged,e=>this.event('user-state',{state:e.newState}));
+    this.session.on(voice.AgentSessionEventTypes.AgentFalseInterruption,()=>this.event('false-interruption-resumed'));
+    this.session.on(voice.AgentSessionEventTypes.Error,()=>this.event('error',{text:'Voice pipeline failed. End and restart the conversation.',kind:'pipeline'}));
+    this.session.on(voice.AgentSessionEventTypes.Close,()=>{if(!this.closed) void this.close();});
+    this.ready = this.session.start({agent:this.agent,room:this.room,inputOptions:{participantIdentity:this.identity,audioSampleRate:16000,textEnabled:false},outputOptions:{audioSampleRate:24000,syncTranscription:true}});
+    void this.ready.catch(()=>{this.event('error',{kind:'start',text:'Voice session could not start.'});void this.close();});
+    this.heartbeat=setInterval(()=>{
+      if(Date.now()-this.touched>90000) {void this.close();return;}
+      void this.relay.command('heartbeat').catch(()=>{this.event('error',{kind:'ownership',text:'Conversation ownership expired.'});void this.close();});
+    },10000);
+    this.event('connected');
+    const turnSecret=await readFile(config.turnSecretPath,'utf8');
+    const username=`${Math.floor(Date.now()/1000)+3600}:jarvis-livekit`;
+    return {id:this.id,controlToken:this.secret,token:await jwt(this.name,this.identity),iceServers:[{urls:[config.turnUrl],username,credential:createHmac('sha1',turnSecret.trim()).update(username).digest('base64')}]};
+  }
+  async start() {
+    if(this.started) return;
+    this.started=true; await this.ready;
+    this.event('briefing');
+    await this.agent.speakState(await this.relay.command('brief'));
+  }
+  async close() {
+    if(this.closed) return; this.closed=true;
+    clearInterval(this.heartbeat); sessions.delete(this.id);
+    this.event('closing');
+    await Promise.allSettled([this.session.close(),this.relay.command('close')]);
+    await this.room.disconnect().catch(()=>{});
+    await rooms.deleteRoom(this.name).catch(()=>{});
+    log(this.id,'closed');
+  }
+}
+async function jsonBody(req:IncomingMessage) {
+  let size=0; const parts:Buffer[]=[];
+  for await(const chunk of req) {size+=chunk.length;if(size>8192)throw Error('Request too large');parts.push(chunk);}
+  return JSON.parse(Buffer.concat(parts).toString()||'{}') as Record<string,unknown>;
+}
+const server=createServer(async(req,res)=>{
+  const send=(status:number,body:unknown,type='application/json')=>{res.writeHead(status,{'content-type':type,'cache-control':'no-store'});res.end(type==='application/json'?JSON.stringify(body):body);};
+  try {
+    if(!equal(req.headers.authorization??'',`Bearer ${config.relayToken}`)) {send(401,{error:'Unauthorized'});return;}
+    if(req.method==='GET'&&req.url==='/browser.js'){send(200,await readFile(new URL('./browser.bundle.js',import.meta.url)),'application/javascript');return;}
+    if(req.method==='GET'&&req.url==='/health'){send(200,{ok:true,framework:'livekit-agents-node',sessions:sessions.size});return;}
+    if(req.method!=='POST'){send(405,{error:'Method not allowed'});return;}
+    const body=await jsonBody(req);
+    if(req.url==='/session') {
+      if(sessions.size) {send(409,{error:'A LiveKit conversation is already active. End it first or wait 90 seconds for cleanup.'});return;}
+      const connection=new Connection(); sessions.set(connection.id,connection);
+      try {send(200,await connection.open());}catch(e){await connection.close();throw e;}return;
+    }
+    const c=sessions.get(String(body.id));
+    if(!c&&req.url==='/close'){send(200,{ok:true});return;}
+    if(!c||!equal(String(body.controlToken??''),c.secret)){send(403,{error:'Conversation expired'});return;}
+    c.touched=Date.now();
+    if(req.url==='/ready'){void c.start().catch(()=>c.event('error',{kind:'brief',text:'Jarvis could not prepare the briefing.'}));send(200,{ok:true});return;}
+    if(req.url==='/telemetry'){
+      const detail=body.detail&&typeof body.detail==='object'?body.detail as Record<string,unknown>:{};
+      const safe=Object.fromEntries(Object.entries(detail).filter(([,v])=>typeof v==='boolean'||(typeof v==='number'&&Number.isFinite(v))));
+      log(c.id,'browser-media',safe);send(200,{ok:true});return;
+    }
+    if(req.url==='/heartbeat'){send(200,{ok:true});return;}
+    if(req.url==='/close'){await c.close();send(200,{ok:true});return;}
+    if(req.url==='/stop-speaking'){c.session.interrupt();send(200,{ok:true});return;}
+    send(404,{error:'Not found'});
+  } catch(e) {log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'LiveKit spike request failed; check staging logs.'});}
+});
+server.listen(4846,'127.0.0.1',()=>log('service','ready'));
+for(const signal of ['SIGTERM','SIGINT']) process.on(signal,()=>{server.close();void Promise.allSettled([...sessions.values()].map(c=>c.close())).finally(()=>process.exit(0));});

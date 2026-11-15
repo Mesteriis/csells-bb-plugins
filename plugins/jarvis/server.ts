@@ -1,3 +1,5 @@
+import {registerLiveKitSignaling} from "./spikes/livekit/signaling";
+import {livekitPage} from "./spikes/livekit/page.mjs";
 import {pipecatPage} from "./spikes/pipecat/page.mjs";
 import {duplexPage} from "./spikes/duplex-page.mjs";
 import {duplexVoice} from "./spikes/duplex-voice.mjs";
@@ -134,6 +136,22 @@ export default async function plugin(bb: BbPluginApi) {
   const config = await settings.get();
   let call: (method: string, input: unknown) => Promise<unknown>;
   if (config.relayBaseUrl) {
+    registerLiveKitSignaling(bb);
+    bb.http.route("GET", "/livekit", async () => new Response(livekitPage, {headers:{"content-type":"text/html; charset=utf-8", "cache-control":"no-store"}}), {auth:"local"});
+    bb.http.route("GET", "/livekit-browser.js", async () => {
+      const r=await fetch("http://127.0.0.1:4846/browser.js",{headers:{authorization:`Bearer ${config.relayToken}`},signal:AbortSignal.timeout(10000)});
+      return new Response(r.body,{status:r.status,headers:{"content-type":"application/javascript","cache-control":"no-store"}});
+    }, {auth:"local"});
+    for (const action of ["session", "ready", "heartbeat", "close", "stop-speaking", "telemetry"]) {
+      bb.http.route("POST", `/livekit-${action}`, async (context) => {
+        const raw=await context.req.text();
+        if(raw.length>8192) return context.text("Request too large",413);
+        try {
+          const r=await fetch(`http://127.0.0.1:4846/${action}`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${config.relayToken}`},body:raw,signal:AbortSignal.timeout(30000)});
+          return new Response(r.body,{status:r.status,headers:{"content-type":"application/json","cache-control":"no-store"}});
+        } catch { return new Response(JSON.stringify({error:"LiveKit spike unavailable"}),{status:503,headers:{"content-type":"application/json"}}); }
+      }, {auth:"local"});
+    }
     const url = new URL(config.relayBaseUrl);
     if (
       url.protocol !== "http:" ||
