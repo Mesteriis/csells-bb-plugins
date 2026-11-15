@@ -5,7 +5,19 @@ const button=(id:string)=>element(id) as HTMLButtonElement;
 const status=(text:string)=>{element('state').textContent=text;};
 let room:Room|undefined, credentials:{id:string;controlToken:string}|undefined, heartbeat:ReturnType<typeof setInterval>|undefined;
 let textClient:string|undefined, textFocus:string|undefined, textEpoch=0, textBusy=0;
-let lastSessionId:string|undefined, watching=false, quiet=false;
+let lastSessionId:string|undefined, watching=false, quiet=false, voiceReady=false;
+const voiceSelect=element('voice') as HTMLSelectElement,paceSelect=element('pace') as HTMLSelectElement;
+function speechSettingsLocked(locked:boolean){voiceSelect.disabled=locked;paceSelect.disabled=locked||voiceSelect.value==='alfred';}
+async function loadVoices(){
+ try{
+  const catalog=await request('voices');voiceSelect.replaceChildren();
+  for(const v of catalog.voices){const option=new Option(v.label+(v.available?'':' · key needed'),v.id);option.disabled=!v.available;voiceSelect.add(option);}
+  voiceSelect.value=catalog.defaultVoice;voiceReady=catalog.voices.some((v:{id:string;available:boolean})=>v.id===voiceSelect.value&&v.available);
+  const busy=button('text-start').disabled;speechSettingsLocked(busy);button('start').disabled=busy||!voiceReady;
+  if(!voiceReady&&!busy)fail('The selected voice needs its staging API key. You can use text while it is configured.');
+ }catch(e){fail(e);button('start').disabled=true;}
+}
+voiceSelect.onchange=()=>{voiceReady=!voiceSelect.selectedOptions[0]?.disabled;button('start').disabled=!voiceReady;speechSettingsLocked(false);};
 const activeControls=['end','stop','brief','questions','watch','quiet','mic','stop-work','send'];
 const evidence:Record<string,unknown>[]=[];
 function record(event:string,data:Record<string,unknown>={}){const entry={at:Date.now(),monotonicMs:performance.now(),event,...data};evidence.push(entry);window.dispatchEvent(new CustomEvent('jarvis-diagnostic',{detail:entry}));if(evidence.length>2000)evidence.shift();}
@@ -43,7 +55,7 @@ async function textAction(action:string,args:Record<string,unknown>={},backgroun
   finally {textBusy--;if(textClient===clientId&&epoch===textEpoch)status('Ready · text only');}
 }
 async function startText(){
-  button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Connecting text…');
+  speechSettingsLocked(true);button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Connecting text…');
   const clientId=crypto.randomUUID();
   try {
     const initial:State=await control('assistant',{action:'start',clientId});
@@ -58,7 +70,7 @@ async function startText(){
       if(!textBusy)void textAction('next',{},true).catch(fail);
     },5000);
     await refreshTasks();
-  }catch(error){fail(error);if(!textClient){button('start').disabled=false;button('text-start').disabled=false;status('Text connection failed');}}
+  }catch(error){fail(error);if(!textClient){speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;status('Text connection failed');}}
 }
 function fail(error:unknown){record('error',{message:String(error)});element('error').textContent=String(error);}
 async function end(){
@@ -67,10 +79,10 @@ async function end(){
   if(oldText)await control('assistant',{action:'close',clientId:oldText}).catch(fail);
   await room?.disconnect();room=undefined;
   if(old)await request('close',old).catch(fail);
-  element('media').replaceChildren();button('start').disabled=false;button('text-start').disabled=false;for(const id of activeControls)button(id).disabled=true;status('Ended');record('ended');
+  element('media').replaceChildren();speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;for(const id of activeControls)button(id).disabled=true;status('Ended');record('ended');
 }
 async function start(withMicrophone=true){
-  button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Connecting…');
+  speechSettingsLocked(true);button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Connecting…');
   room=new Room({adaptiveStream:true,dynacast:true,audioCaptureDefaults:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
   const unlock=room.startAudio();
   room.on(RoomEvent.TrackSubscribed,track=>{if(track.kind===Track.Kind.Audio){const audio=track.attach();audio.autoplay=true;element('media').append(audio);audio.addEventListener('playing',()=>record('media-playing'));audio.addEventListener('error',()=>record('media-error'));record('audio-subscribed');}});
@@ -90,7 +102,9 @@ async function start(withMicrophone=true){
   });
   try {
     await unlock;
-    const data=await request('session');credentials={id:data.id,controlToken:data.controlToken};lastSessionId=data.id;
+    const data=await request('session',{voice:voiceSelect.value,speed:Number(paceSelect.value)});
+    element('speaking-voice').textContent=`${data.speech.label} · ${data.speech.speed===1.4?'Faster':'Brisk'}`;
+    record('speech-profile',{...data.speech});credentials={id:data.id,controlToken:data.controlToken};lastSessionId=data.id;
     const signalUrl=new URL('livekit-signal',location.href);signalUrl.protocol=location.protocol==='https:'?'wss:':'ws:';
     await room.connect(signalUrl.toString(),data.token,{rtcConfig:{iceTransportPolicy:'relay',iceServers:data.iceServers}});
     if(withMicrophone)try{await room.localParticipant.setMicrophoneEnabled(true);}catch{fail('Microphone unavailable. You can type below and still hear replies.');}
@@ -146,3 +160,5 @@ async function refreshTasks(){if((!credentials&&!textClient)||loadingTasks)retur
  if(!tasks.length)element('tasks').textContent='No delegated work yet. Ask Jarvis to start a task.';
  for(const task of tasks){const item=document.createElement('div');item.className='task';item.textContent=`${task.session?.title??task.prompt} — ${task.session?.status??task.dispatch}${task.cancellation!=='none'?` · Stop: ${task.cancellation}`:''}`;element('tasks').append(item);}
 }catch{element('tasks').textContent='Task status unavailable; retrying.';}finally{loadingTasks=false;}}
+
+void loadVoices();

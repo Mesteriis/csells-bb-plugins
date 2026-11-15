@@ -5,19 +5,21 @@ import { initializeLogger, voice } from '@livekit/agents';
 import { VAD } from '@livekit/agents-plugin-silero';
 import { AudioStream, TrackSource, type RemoteAudioTrack, Room, RoomEvent } from '@livekit/rtc-node';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { SpeechCatalog, SpeechSelectionError, type SpeechSelection } from './speech.js';
 import { InputMeter } from './input-meter.js';
 import { ControlLane } from './control-lane.js';
-import { BBSTT, BBDirector, JarvisAgent, Relay } from './relay.js';
+import { BBSTT, BBDirector, JarvisAgent, AlfredAgent, Relay } from './relay.js';
 initializeLogger({pretty:false, level:'warn'});
 const configPath=process.env.JARVIS_VOICE_CONFIG??process.env.JARVIS_LIVEKIT_CONFIG;
 if(!configPath)throw Error("Set JARVIS_VOICE_CONFIG to the private companion configuration file");
-const config = JSON.parse(await readFile(configPath,'utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string};
+const config = JSON.parse(await readFile(configPath,'utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string; speech?:unknown};
+const speechCatalog=new SpeechCatalog(config.speech);
 const rooms = new RoomServiceClient('http://127.0.0.1:7880',config.apiKey,config.apiSecret);
 const vad = await VAD.load();
 const sessions = new Map<string, Connection>();
 function equal(a:string,b:string) { const x=Buffer.from(a),y=Buffer.from(b); return x.length===y.length && timingSafeEqual(x,y); }
 function log(session:string,phase:string,detail:Record<string,unknown>={}) {
-  const safe = Object.fromEntries(Object.entries(detail).filter(([k])=>['durationMs','audioMs','state','interrupted','reason','kind','bytesReceived','packetsLost','jitter','audioLevel','totalAudioEnergy','totalSamplesDuration','playbackAllowed','micEnabled','inputSamples','inputRms','inputPeak','inputBytesSent','inputPacketsSent','inputAudioLevel','inputTotalAudioEnergy','inputTotalSamplesDuration','inputMuted','inputEnded','allowInterruptions'].includes(k)));
+  const safe = Object.fromEntries(Object.entries(detail).filter(([k])=>['durationMs','audioMs','state','interrupted','reason','kind','bytesReceived','packetsLost','jitter','audioLevel','totalAudioEnergy','totalSamplesDuration','playbackAllowed','micEnabled','inputSamples','inputRms','inputPeak','inputBytesSent','inputPacketsSent','inputAudioLevel','inputTotalAudioEnergy','inputTotalSamplesDuration','inputMuted','inputEnded','allowInterruptions','provider','model','voice','speed','ttfbMs','charactersCount','cancelled','streamed'].includes(k)));
   console.log(JSON.stringify({at:new Date().toISOString(),session,phase,...safe}));
 }
 async function jwt(room:string,identity:string,agent=false) {
@@ -29,8 +31,14 @@ class Connection {
   id = randomUUID(); secret = randomBytes(32).toString('hex');
   name = `jarvis-${this.id}`; identity = `user-${this.id}`;
   room = new Room(); relay = new Relay(`Bearer ${config.relayToken}`, (p,d)=>this.event(p,d));
-  agent = new JarvisAgent(this.relay);
-  session = new voice.AgentSession({vad,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
+  tts:ReturnType<SpeechCatalog['create']>|undefined;
+  agent:JarvisAgent;
+  session:voice.AgentSession;
+  constructor(readonly speechChoice?:SpeechSelection) {
+    this.tts=speechChoice?speechCatalog.create(speechChoice):undefined;
+    this.agent=speechChoice?new JarvisAgent(this.relay):new AlfredAgent(this.relay);
+    this.session = new voice.AgentSession({vad,tts:this.tts,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
+  }
   ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout; watcher?:NodeJS.Timeout; polling=false; backgroundEpoch=0; controls=new ControlLane();
   inputReader?:ReturnType<AudioStream['getReader']>; inputMeterGeneration=0;
   async meterInput(track:RemoteAudioTrack){
@@ -61,6 +69,9 @@ class Connection {
     this.room.on(RoomEvent.TrackUnmuted,(publication,participant)=>{if(participant.identity===this.identity&&publication.source===TrackSource.SOURCE_MICROPHONE)this.event('microphone-track',{inputMuted:false});});
     this.room.on(RoomEvent.ParticipantDisconnected, p=>{if(p.identity===this.identity) void this.close();});
     this.session.on(voice.AgentSessionEventTypes.SpeechCreated,e=>{this.relay.activeSpeech=e.speechHandle;this.event('speech-created',{allowInterruptions:e.speechHandle.allowInterruptions});});
+    this.session.on(voice.AgentSessionEventTypes.MetricsCollected,({metrics:m})=>{
+      if(m.type==='tts_metrics')this.event('synthesis-metrics',{ttfbMs:m.ttfbMs,durationMs:m.durationMs,audioMs:m.audioDurationMs,charactersCount:m.charactersCount,cancelled:m.cancelled,streamed:m.streamed});
+    });
     this.session.on(voice.AgentSessionEventTypes.AgentStateChanged,e=>this.event('agent-state',{state:e.newState}));
     this.session.on(voice.AgentSessionEventTypes.UserStateChanged,e=>{
       this.event('user-state',{state:e.newState});
@@ -76,9 +87,10 @@ class Connection {
       void this.relay.command('heartbeat').catch(()=>{this.event('error',{kind:'ownership',text:'Conversation ownership expired.'});void this.close();});
     },10000);
     this.event('connected');
+    this.event('speech-profile',this.speechChoice?{provider:this.speechChoice.provider,model:this.speechChoice.model,voice:this.speechChoice.voice,speed:this.speechChoice.speed}:{provider:'local',model:'pocket-tts',voice:'alfred',speed:1.25});
     const turnSecret=await readFile(config.turnSecretPath,'utf8');
     const username=`${Math.floor(Date.now()/1000)+3600}:jarvis-livekit`;
-    return {id:this.id,controlToken:this.secret,token:await jwt(this.name,this.identity),iceServers:[{urls:[config.turnUrl],username,credential:createHmac('sha1',turnSecret.trim()).update(username).digest('base64')}]};
+    return {id:this.id,controlToken:this.secret,speech:this.speechChoice?{...this.speechChoice}:{label:'Alfred · local',speed:1.25},token:await jwt(this.name,this.identity),iceServers:[{urls:[config.turnUrl],username,credential:createHmac('sha1',turnSecret.trim()).update(username).digest('base64')}]};
   }
   async start() {
     if(this.started) return;
@@ -126,6 +138,7 @@ class Connection {
     clearInterval(this.heartbeat); clearInterval(this.watcher); sessions.delete(this.id);
     this.event('closing');
     await Promise.allSettled([this.inputReader?.cancel(),this.session.close(),this.relay.command('close')]);
+    await this.tts?.close().catch(()=>log(this.id,'tts-close-failed'));
     await this.room.disconnect().catch(()=>{});
     await rooms.deleteRoom(this.name).catch(()=>{});
     log(this.id,'closed');
@@ -144,9 +157,10 @@ const server=createServer(async(req,res)=>{
     if(req.method==='GET'&&req.url==='/health'){send(200,{ok:true,framework:'livekit-agents-node',sessions:sessions.size});return;}
     if(req.method!=='POST'){send(405,{error:'Method not allowed'});return;}
     const body=await jsonBody(req);
+    if(req.url==='/voices'){send(200,speechCatalog.describe());return;}
     if(req.url==='/session') {
       if(sessions.size) {send(409,{error:'A LiveKit conversation is already active. End it first or wait 90 seconds for cleanup.'});return;}
-      const connection=new Connection(); sessions.set(connection.id,connection);
+      const connection=new Connection(speechCatalog.select(body)); sessions.set(connection.id,connection);
       try {send(200,await connection.open());}catch(e){await connection.close();throw e;}return;
     }
     const c=sessions.get(String(body.id));
@@ -175,7 +189,7 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/close'){await c.close();send(200,{ok:true});return;}
     if(req.url==='/stop-speaking'){c.session.interrupt();send(200,{ok:true});return;}
     send(404,{error:'Not found'});
-  } catch(e) {log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'Voice request failed; check Jarvis diagnostics.'});}
+  } catch(e) {if(e instanceof SpeechSelectionError){send(e.status,{error:e.message});return;}log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'Voice request failed; check Jarvis diagnostics.'});}
 });
 server.listen(4846,'127.0.0.1',()=>log('service','ready'));
 for(const signal of ['SIGTERM','SIGINT']) process.on(signal,()=>{server.close();void Promise.allSettled([...sessions.values()].map(c=>c.close())).finally(()=>process.exit(0));});

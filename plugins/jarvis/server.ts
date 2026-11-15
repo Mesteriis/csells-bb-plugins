@@ -142,7 +142,7 @@ export default async function plugin(bb: BbPluginApi) {
     bb.http.route("GET", "/livekit-browser.js", async () => {
       return new Response(browserSource,{headers:{"content-type":"application/javascript","cache-control":"no-store"}});
     }, {auth:"local"});
-    for (const action of ["session", "ready", "heartbeat", "close", "stop-speaking", "telemetry", "command", "text", "tasks"]) {
+    for (const action of ["voices", "session", "ready", "heartbeat", "close", "stop-speaking", "telemetry", "command", "text", "tasks"]) {
       bb.http.route("POST", `/livekit-${action}`, async (context) => {
         const raw=await context.req.text();
         if(raw.length>8192) return context.text("Request too large",413);

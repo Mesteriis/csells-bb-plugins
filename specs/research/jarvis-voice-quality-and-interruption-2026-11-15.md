@@ -5,6 +5,10 @@ first interruption stopped the opening briefing; a later interruption was
 ignored until Stop speaking was pressed. This report separates the concrete
 speech-rate repair from the **still unresolved physical-device interruption**.
 
+**Subsequent user feedback:** background fuzz remains and normal speed is too
+slow. The reduction to 1.0 did not resolve perceived quality and is not the user's
+desired pace. See [replacement TTS research](jarvis-tts-provider-options-2026-11-15.md).
+
 ## What the actual user session shows
 
 The session beginning 20:32:15Z on 2026-11-15 recorded the first speech detection
@@ -44,8 +48,8 @@ for this known synthetic passage; no personal briefing audio was retained.
 
 This verifies a slower rate and an intelligible generated sample after browser
 transport. It cannot certify perceived quality after the physical Bluetooth/car
-speaker path. The voice's timbre is unchanged, and normal speed may still be too
-brisk for Chris's preference. No unsupported claim of “car audio fixed” follows.
+speaker path. The voice's timbre is unchanged; subsequent feedback says normal
+speed is too slow. No unsupported claim of “car audio fixed” follows.
 
 ## Repeated interruption: desktop passes, phone cause remains open
 

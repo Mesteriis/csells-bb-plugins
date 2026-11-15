@@ -91,10 +91,45 @@ returns a visible conflict rather than silently taking over another conversation
 Integration results are in `specs/research/jarvis-livekit-integration.md`.
 
 
-Jarvis explicitly requests Alfred at normal speed (1.0), overriding the shared
-service's faster default. Diagnostics include upstream browser microphone counters
+The legacy Alfred path requests speed 1.25, matching the user's preference for
+brisk speech. Diagnostics include upstream browser microphone counters
 and server input RMS/peak/sample counts without retaining microphone recordings.
 Speech-handle interruption eligibility is recorded separately from detected speech.
 See `specs/research/jarvis-voice-quality-and-interruption-2026-11-15.md` for the
 known-passage intelligibility check and repeated-interruption evidence. Desktop
 passes do not close the reported Android/car interruption failure.
+
+## Hosted speech comparison
+
+The companion supports the official Cartesia and Inworld Node plugins, pinned to
+1.10.0. Add this `speech` section to the private companion JSON configuration:
+
+```json
+{
+  "speech": {
+    "defaultVoice": "cartesia",
+    "voices": [
+      {"id":"cartesia","label":"Cartesia · Daniel","provider":"cartesia","voice":"47c38ca4-5f35-497b-b1a3-415245fb35e1","model":"sonic-3.6-2026-08-27"},
+      {"id":"inworld","label":"Inworld · Dennis","provider":"inworld","voice":"Dennis","model":"inworld-tts-2"}
+    ]
+  }
+}
+```
+
+Supply candidate-only `CARTESIA_API_KEY` and `INWORLD_API_KEY` through a protected
+systemd `EnvironmentFile` outside the source tree. The Inworld value is its Base64
+API credential. Do not put either key in the browser, JSON catalog, or diagnostics.
+Profiles without a key are visibly unavailable; failed synthesis never falls back
+to another voice. Restart the companion after updating credentials/configuration.
+
+Choose Voice and Pace before Start Jarvis. Brisk requests 1.25; Faster requests
+1.4. These are provider synthesis controls, not changes to browser playback rate.
+Actual speaking pace depends on the voice and must be measured. The selection is
+fixed for the conversation and applies to replies, briefings and agent questions.
+LiveKit owns cancellation, false-interruption recovery and transport. End closes
+the provider's pooled connections as well as the session and room. Diagnostics
+include provider/model/voice/pace and SDK synthesis timing, duration and counts.
+
+Without a `speech` section, the explicitly labeled local Alfred installation
+remains available at the Brisk preset (1.25). It is a compatibility path, not an
+automatic fallback or the quality replacement. The shared voice service is unchanged.

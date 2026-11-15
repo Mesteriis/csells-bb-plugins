@@ -5,6 +5,7 @@ After=network-online.target
 [Service]
 User=SERVICE_USER
 WorkingDirectory=/ABSOLUTE/PATH/TO/jarvis/voice
+# For hosted profiles: EnvironmentFile=/ABSOLUTE/PRIVATE/PATH/tts-candidate.env
 Environment=JARVIS_VOICE_CONFIG=/ABSOLUTE/PRIVATE/PATH/voice.json
 ExecStart=/ABSOLUTE/PATH/TO/node dist/server.js
 Restart=on-failure

@@ -157,6 +157,26 @@ class BBDirectorStream extends llm.LLMStream {
 }
 export class JarvisAgent extends voice.Agent {
   constructor(readonly relay: Relay) { super({instructions:'Coordinate Chris’s real BB sessions through the restricted Jarvis relay.'}); }
+  async speakState(state: State) {
+    this.relay.present(state);
+    if (!state.utterance) return;
+    const speech = this.session.say(state.utterance.text, {allowInterruptions:true});
+    this.relay.track(state,speech);
+    await speech.waitForPlayout();
+  }
+}
+// Retained only for explicitly configured legacy installations. Hosted providers
+// use the SDK's default TTS node for both model replies and proactive speech.
+export class AlfredAgent extends JarvisAgent {
+  async speakState(state:State) {
+    this.relay.present(state);
+    if(!state.utterance)return;
+    const text=new ReadableStream<string>({start(c){c.enqueue(state.utterance!.text);c.close();}});
+    const audio=await this.ttsNode(text);
+    const speech=this.session.say(state.utterance.text,{audio,allowInterruptions:true});
+    this.relay.track(state,speech);
+    await speech.waitForPlayout();
+  }
   async ttsNode(text: ReadableStream<string> | AsyncIterable<string>): Promise<ReadableStream<AudioFrame>> {
     const relay = this.relay;
     return generated(async function* (signal) {
@@ -176,15 +196,5 @@ export class JarvisAgent extends voice.Agent {
         relay.event('synthesized', {audioMs:Math.round(samples/24)});
       }
     });
-  }
-  async speakState(state: State) {
-    this.relay.present(state);
-    if (!state.utterance) return;
-    const item = state.utterance;
-    const text = new ReadableStream<string>({start(c){c.enqueue(item.text);c.close();}});
-    const audio = await this.ttsNode(text);
-    const speech = this.session.say(item.text, {audio, allowInterruptions:true});
-    this.relay.track(state,speech);
-    await speech.waitForPlayout();
   }
 }

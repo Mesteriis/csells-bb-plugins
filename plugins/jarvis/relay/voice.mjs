@@ -62,7 +62,7 @@ export function createVoice({ baseUrl, adminKeyPath, sdk }) {
           body: JSON.stringify({
             model: "pocket-tts",
             voice: "alfred",
-            speed: 1.0,
+            speed: 1.25,
             response_format: "pcm",
             input: text,
           }),

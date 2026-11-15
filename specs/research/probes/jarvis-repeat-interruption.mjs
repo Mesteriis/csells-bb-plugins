@@ -1,4 +1,4 @@
-// Real browser -> LiveKit -> STT/model/Alfred. Generated mic; no acoustic AEC claim.
+// Real browser -> LiveKit -> STT/model/selected TTS. Generated mic; no acoustic AEC claim.
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';
 const need=n=>{if(!process.env[n])throw Error(`Set ${n}`);return process.env[n];};
 const out=need('JARVIS_AUDIT_DIR');const {chromium}=await import(pathToFileURL(need('JARVIS_PLAYWRIGHT_MODULE')).href);
@@ -12,6 +12,11 @@ try{
  });
  await page.goto(need('JARVIS_REVIEW_URL'));await page.frameLocator('iframe[title="Jarvis conversation"]').locator('#start').waitFor();frame=page.frames().find(f=>f.url().endsWith('/livekit'));
  const wait=(f,arg,timeout=60000)=>frame.waitForFunction(f,arg,{timeout});
+ await frame.locator('#voice').waitFor();
+ await wait(()=>!document.querySelector('#voice').disabled);
+ if(process.env.JARVIS_TTS_VOICE)await frame.locator('#voice').selectOption(process.env.JARVIS_TTS_VOICE);
+ if(process.env.JARVIS_TTS_SPEED)await frame.locator('#pace').selectOption(process.env.JARVIS_TTS_SPEED);
+ result.speech={voice:await frame.locator('#voice').inputValue(),speed:Number(await frame.locator('#pace').inputValue())};
  await frame.locator('#start').click();await wait(()=>document.querySelector('#media audio'));
  await frame.evaluate(async()=>{
   const c=new AudioContext();await c.resume();const a=c.createAnalyser();c.createMediaStreamSource(document.querySelector('#media audio').srcObject).connect(a);window.levels=[];
@@ -36,8 +41,9 @@ try{
   await wait(t=>window.events.some(e=>e.phase==='response'&&e.monotonicMs>t),start,60000);
   turn.transcript=await frame.locator('#heard').textContent();turn.answer=await frame.locator('#answer').textContent();
   assert(new RegExp(id==='first'?'lighthouse':id==='second'?'mountain':'forest','i').test(turn.answer));
-  turn.pass=true;console.log(JSON.stringify({id,pass:true,onsetToQuietMs:turn.onsetToQuietMs}));
+  turn.within250msTarget=turn.onsetToQuietMs<=250;turn.pass=true;console.log(JSON.stringify({id,pass:true,onsetToQuietMs:turn.onsetToQuietMs}));
  }
+ result.interruptionTargetMet=result.turns.every(t=>t.within250msTarget);
  assert.equal(await frame.locator('#error').textContent(),'');assert.deepEqual(result.errors,[]);
  if(process.env.JARVIS_EXPECT_INPUT_METRICS==='1'){
   const events=await frame.evaluate(()=>window.events);

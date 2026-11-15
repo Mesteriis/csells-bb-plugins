@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-15T21:17:01.487Z",
+  "componentTests": {
+    "plugin": 57,
+    "companion": 12
+  },
+  "hostedProviders": {
+    "cartesia": "blocked: staging API key not supplied",
+    "inworld": "blocked: staging API key not supplied"
+  },
+  "legacyRegression": {
+    "speech": {
+      "voice": "alfred",
+      "speed": 1.25
+    },
+    "seconds": 11.559958333333332,
+    "wordsPerMinute": 275.0874967109887,
+    "clippedFraction": 0,
+    "errors": [],
+    "failure": null
+  },
+  "interruptions": {
+    "onsetToQuietMs": [
+      625,
+      669,
+      774
+    ],
+    "targetMs": 250,
+    "targetMet": false,
+    "inputTelemetryVerified": true,
+    "errors": []
+  },
+  "missingKeys": {
+    "at": "2026-11-15T21:17:01.487Z",
+    "checks": [
+      "unavailable providers are explicit; no silent Alfred fallback",
+      "server refuses unconfigured synthesis before acquiring a session",
+      "text controls remain available without a voice provider"
+    ],
+    "errors": []
+  },
+  "limits": [
+    "Generated desktop microphone, not physical Android/car",
+    "No hosted-provider synthesis performed",
+    "No claim that fuzz or repeated Android interruption is fixed"
+  ]
+}

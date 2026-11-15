@@ -1,0 +1,7 @@
+{
+  "defaultVoice": "cartesia",
+  "voices": [
+    {"id":"cartesia","label":"Cartesia · Daniel","provider":"cartesia","voice":"47c38ca4-5f35-497b-b1a3-415245fb35e1","model":"sonic-3.6-2026-08-27"},
+    {"id":"inworld","label":"Inworld · Dennis","provider":"inworld","voice":"Dennis","model":"inworld-tts-2"}
+  ]
+}
