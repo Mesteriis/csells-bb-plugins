@@ -2,7 +2,8 @@
 Existing restricted relay owns BB authorization, STT, model and Alfred leases.
 No audio persistence. Not a replacement production conversation controller.
 """
-import asyncio, io, json, logging, time, uuid, wave, os, hmac, hashlib, base64
+import asyncio, io, json, logging, time, uuid, wave, os, hmac, hashlib, base64, re
+from difflib import SequenceMatcher
 from pathlib import Path
 from collections import deque
 import aiohttp
@@ -34,9 +35,10 @@ class Bridge(FrameProcessor):
         self.client = str(uuid.uuid4()); self.lease = ''; self.focus = None
         self.http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60))
         self.pre = deque(maxlen=20); self.audio = bytearray(); self.hearing = False
+        self.input_job=None; self.output_until=0
         self.job = None; self.generation = 0; self.last_spoken = ''; self.was_speaking = False
     def event(self, phase, **data):
-        logging.info(json.dumps({'stage':'pipecat','phase':phase,'clientId':self.client,'at':time.time(), 'generation':self.generation}))
+        logging.info(json.dumps({'stage':'pipecat','phase':phase,'clientId':self.client,'at':time.time(), 'generation':self.generation, **{k:v for k,v in data.items() if k in ('reason','bytes','durationMs')}}))
         self.pc.send_app_message({'type':'jarvis','phase':phase, **data})
     async def relay(self, path, data=None, raw=None):
         headers={'authorization':self.token,'x-jarvis-client':self.client,'x-jarvis-lease':self.lease}
@@ -69,42 +71,58 @@ class Bridge(FrameProcessor):
             self.pre.append(frame.audio)
             return
         if isinstance(frame,VADUserStartedSpeakingFrame):
-            self.was_speaking = bool(self.job and not self.job.done())
-            await self.interrupt()
+            self.was_speaking = bool(self.job and not self.job.done()) or time.monotonic()<self.output_until
+            if self.input_job:
+                self.input_job.cancel(); await asyncio.gather(self.input_job,return_exceptions=True)
+            # Raw VAD is only a candidate. Never flush audio before qualifying it.
+            if self.was_speaking: self.event('speech-candidate')
             self.audio = self.audio if self.hearing else bytearray(b''.join(self.pre))
-            self.hearing=True; self.event('listening')
+            self.hearing=True
+            if not self.was_speaking: self.event('listening')
         elif isinstance(frame,VADUserStoppedSpeakingFrame) and self.hearing:
             self.hearing=False
             raw=bytes(self.audio); self.audio.clear()
-            self.job=asyncio.create_task(self.respond(raw, self.generation))
+            self.input_job=asyncio.create_task(self.respond(raw, self.generation, self.was_speaking))
         await self.push_frame(frame,direction)
-    async def respond(self, raw, generation):
+    async def respond(self, raw, generation, was_speaking):
         try:
             # Reuse the real Smart Turn service before committing captured speech.
             floats=(np.frombuffer(raw,dtype='<i2').astype(np.float32)/32768).tobytes()
             async with self.http.post('http://127.0.0.1:4843/turn',data=floats[-512000:]) as r:
                 if r.status!=200: raise RuntimeError('Turn detection unavailable')
                 complete=(await r.json())['complete']
-            if not complete:
+            if not complete and not was_speaking:
                 self.audio=bytearray(raw); self.hearing=True; return
             b=io.BytesIO()
             with wave.open(b,'wb') as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000); w.writeframes(raw)
-            self.event('transcribing')
+            if not was_speaking: self.event('transcribing')
             result=await self.relay('transcribe',raw=b.getvalue())
             text=result.get('text','').strip()
-            if not text: self.event('ready'); return
-            normalize=lambda value: ''.join(c for c in value.lower() if c.isalnum())
-            if self.was_speaking and len(normalize(text))>2 and normalize(text) in normalize(self.last_spoken):
-                self.event('error',text='Possible speaker echo. Please repeat your answer; nothing was sent.')
-                return
+            if not text:
+                self.event('speech-rejected',reason='no-transcript'); return
+            words=re.findall(r"[a-z0-9]+",text.lower())
+            spoken=re.findall(r"[a-z0-9]+",self.last_spoken.lower())
+            normalized=' '.join(words)
+            short_control=normalized in {'stop','wait','yes','no','stop speaking','hold on','be quiet','no thanks'}
+            echo=bool(words) and (normalized in ' '.join(spoken) or any(SequenceMatcher(None,words,spoken[i:i+len(words)]).ratio()>=.75 for i in range(len(spoken))))
+            if was_speaking and (echo or (not short_control and len(words)<3)):
+                self.event('speech-rejected',reason='echo' if echo else 'unconfirmed-short-speech'); return
+            if generation != self.generation: return
+            await self.interrupt()
             self.event('transcript',text=text)
             kw={'text':text}
             if self.focus: kw['presentedQuestion']=self.focus
             state=await self.command('talk',**kw)
-            await self.speak(state,generation)
+            self.job=asyncio.create_task(self.speak(state,self.generation))
         except asyncio.CancelledError: raise
-        except Exception as e: self.event('error',text=str(e))
+        except Exception as e:
+            self.event('error',text=str(e))
     async def speak(self,state,generation):
+        try:
+            await self.stream_speech(state,generation)
+        except asyncio.CancelledError: raise
+        except Exception as e: self.event('error',text='Speech failed: '+str(e))
+    async def stream_speech(self,state,generation):
         item=state.get('utterance')
         if not item: self.event('ready'); return
         self.last_spoken=item['text']
@@ -112,26 +130,35 @@ class Bridge(FrameProcessor):
         self.event('response',text=item['text'],question=(state.get('focus') or {}).get('displayText'))
         # Existing relay emits framed PCM24k; zero length means synthesis and lease release succeeded.
         headers={'authorization':self.token,'x-jarvis-client':self.client,'x-jarvis-lease':self.lease}
-        async with self.http.post('http://127.0.0.1:4842/speech',json={'text':item['text'][:2000]},headers=headers) as r:
-            if r.status!=200: raise RuntimeError(f'Alfred failed ({r.status})')
-            self.event('speaking')
-            carry=b''
-            while True:
-                size=int.from_bytes(await r.content.readexactly(4),'big')
-                if size==0: break
-                if size>1048576: raise RuntimeError('Invalid PCM frame')
-                carry+=await r.content.readexactly(size)
-                while len(carry)>=1920:
+        remaining=item['text']; sent_bytes=0; started=time.monotonic()
+        while remaining:
+            cut=len(remaining) if len(remaining)<=1800 else remaining.rfind(' ',0,1800)
+            if cut<=0: cut=1800
+            segment,remaining=remaining[:cut],remaining[cut:]
+            async with self.http.post('http://127.0.0.1:4842/speech',json={'text':segment},headers=headers,timeout=aiohttp.ClientTimeout(total=None,sock_connect=10,sock_read=20)) as r:
+                if r.status!=200: raise RuntimeError(f'Alfred failed ({r.status})')
+                self.event('speaking')
+                carry=b''
+                while True:
+                    size=int.from_bytes(await r.content.readexactly(4),'big')
+                    if size==0: break
+                    if size>1048576: raise RuntimeError('Invalid PCM frame')
+                    carry+=await r.content.readexactly(size)
+                    while len(carry)>=1920:
+                        if generation!=self.generation: return
+                        # Pace at PCM duration; transport and jitter buffers remain separate.
+                        await self.push_frame(OutputAudioRawFrame(carry[:1920],24000,1))
+                        sent_bytes+=1920; self.output_until=time.monotonic()+.5
+                        carry=carry[1920:]
+                        await asyncio.sleep(.04)
+                if carry:
                     if generation!=self.generation: return
-                    # Await transport delivery to bound queued audio independently of TTS speed.
-                    await self.push_frame(OutputAudioRawFrame(carry[:1920],24000,1))
-                    carry=carry[1920:]
-                    await asyncio.sleep(.04)
-            if carry:
-                if len(carry)%2: raise RuntimeError('Odd PCM payload')
-                await self.push_frame(OutputAudioRawFrame(carry,24000,1))
-        self.event('generated') # Never claim physical playback or mark an approval heard.
+                    if len(carry)%2: raise RuntimeError('Odd PCM payload')
+                    await self.push_frame(OutputAudioRawFrame(carry,24000,1))
+                    sent_bytes+=len(carry); self.output_until=time.monotonic()+.5
+        self.event('generated',bytes=sent_bytes,durationMs=round((time.monotonic()-started)*1000)) # Never claim physical playback or mark an approval heard.
     async def cleanup(self):
+        if self.input_job: self.input_job.cancel(); await asyncio.gather(self.input_job,return_exceptions=True)
         if self.job: self.job.cancel(); await asyncio.gather(self.job,return_exceptions=True)
         try: await self.command('close')
         except Exception as e: logging.warning('Ownership cleanup: %s',e)
@@ -160,8 +187,13 @@ async def offer(req):
         async def message(_,msg):
             try:
                 if msg.get('type')=='heartbeat': await bridge.command('heartbeat')
-                elif msg.get('type')=='stop': await bridge.interrupt()
+                elif msg.get('type')=='end':
+                    await task.cancel()
+                elif msg.get('type')=='stop':
+                    if bridge.input_job: bridge.input_job.cancel()
+                    await bridge.interrupt()
                 elif msg.get('type')=='brief':
+                    if bridge.input_job: bridge.input_job.cancel()
                     await bridge.interrupt()
                     async def brief():
                         try: await bridge.speak(await bridge.command('brief'),bridge.generation)
@@ -194,4 +226,5 @@ async def shutdown(_):
     for task in runners: task.cancel()
     await asyncio.gather(*runners,return_exceptions=True)
 app.on_shutdown.append(shutdown)
-web.run_app(app,host='127.0.0.1',port=4844,access_log=None)
+if __name__ == '__main__':
+    web.run_app(app,host='127.0.0.1',port=4844,access_log=None)

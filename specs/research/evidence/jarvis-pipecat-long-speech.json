@@ -1,0 +1,28 @@
+{
+  "inputCharacters": 2600,
+  "pcmBytes": 5379072,
+  "pcmSeconds": 112.064,
+  "elapsedSeconds": 113.12133497700415,
+  "events": [
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "question": null
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking"
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking"
+    },
+    {
+      "type": "jarvis",
+      "phase": "generated",
+      "bytes": 5379072,
+      "durationMs": 113121
+    }
+  ],
+  "method": "Actual Bridge paced output, real authenticated relay and Alfred, 2600 characters of existing research document; PCM sink counts frames. Component integration, not WebRTC or acoustic playback."
+}

@@ -1,0 +1,66 @@
+{
+  "at": "2026-11-15T05:54:39.067Z",
+  "method": "Actual staged services, output fed at gain 0.4 into microphone for 12 seconds; then quiet microphone through full completion. Digital echo injection bypasses browser AEC, not a physical car test.",
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1641.800000011921,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 2159.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 12391.300000011921,
+      "chars": 1186
+    },
+    {
+      "phase": "speaking",
+      "at": 12500.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 13086.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 16457.30000001192,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 17843.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 21246.80000001192,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 22688.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 25864.69999998808,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "generated",
+      "at": 65852.10000002384,
+      "chars": 0,
+      "bytes": 2519040,
+      "durationMs": 53464
+    }
+  ]
+}

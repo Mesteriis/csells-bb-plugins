@@ -1,0 +1,165 @@
+{
+  "at": "2026-11-15T06:00:04.203Z",
+  "method": "Actual staged services, output fed at gain 0.4 into microphone through full response completion. Digital echo injection bypasses browser AEC, not a physical car test.",
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1301.6000000238419,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 1658.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 12479.100000023842,
+      "chars": 1191
+    },
+    {
+      "phase": "speaking",
+      "at": 12590.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 13186.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 16008.100000023842,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 16985.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 20849.899999976158,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 22185.600000023842,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 25998.100000023842,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 26985.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 30941.399999976158,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 32004.5,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 35891.60000002384,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 36976.5,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 40895.69999998808,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 42477.5,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 45920.69999998808,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 46995.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 51096.80000001192,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 52184.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 55905,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 57254,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 61156.60000002384,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 62104.60000002384,
+      "chars": 0
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 65977.5,
+      "chars": 0,
+      "reason": "echo"
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 66906.5,
+      "chars": 0
+    },
+    {
+      "phase": "generated",
+      "at": 68487.5,
+      "chars": 0,
+      "bytes": 2638848,
+      "durationMs": 56011
+    },
+    {
+      "phase": "speech-rejected",
+      "at": 69826.60000002384,
+      "chars": 0,
+      "reason": "echo"
+    }
+  ]
+}

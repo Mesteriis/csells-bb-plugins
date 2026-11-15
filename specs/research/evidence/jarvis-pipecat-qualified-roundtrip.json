@@ -1,0 +1,60 @@
+{
+  "at": "2026-11-15T05:55:44.014Z",
+  "method": "Actual staged Pipecat + public TCP TURN address; generated microphone carrying known Alfred speech fixture -> real STT -> Jarvis -> Alfred. Not physical Android/car verification.",
+  "rms": 0.06401541304036347,
+  "tailMs": 146.19999998807907,
+  "onsetToInterruptMs": 2658.800000011921,
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1844.4000000357628,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 2456.5,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 11198.199999988079,
+      "chars": 1235
+    },
+    {
+      "phase": "speaking",
+      "at": 11301.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "speech-candidate",
+      "at": 17498.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 19678.5,
+      "chars": 0
+    },
+    {
+      "phase": "transcript",
+      "at": 19678.69999998808,
+      "chars": 22
+    },
+    {
+      "phase": "response",
+      "at": 19945.600000023842,
+      "chars": 64
+    },
+    {
+      "phase": "speaking",
+      "at": 20010.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "generated",
+      "at": 22453.600000023842,
+      "chars": 0
+    }
+  ],
+  "errors": []
+}
