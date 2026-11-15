@@ -1,3 +1,4 @@
+import {pipecatPage} from "./spikes/pipecat/page.mjs";
 import {duplexPage} from "./spikes/duplex-page.mjs";
 import {duplexVoice} from "./spikes/duplex-voice.mjs";
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
@@ -215,6 +216,20 @@ export default async function plugin(bb: BbPluginApi) {
       rpcContract.decide.output.parse(await call("decide", input)),
   });
   if (config.relayBaseUrl) {
+    bb.http.route("GET", "/pipecat", async () => new Response(pipecatPage, {headers:{"content-type":"text/html; charset=utf-8", "cache-control":"no-store"}}), {auth:"local"});
+    bb.http.route("GET", "/pipecat-ice", async () => {
+      const r=await fetch("http://127.0.0.1:4844/ice",{headers:{authorization:`Bearer ${config.relayToken}`},signal:AbortSignal.timeout(10000)});
+      return new Response(r.body,{status:r.status,headers:{"content-type":"application/json","cache-control":"no-store"}});
+    }, {auth:"local"});
+    bb.http.route("POST", "/pipecat-offer", async (context) => {
+      const raw=await context.req.text();
+      if(raw.length>100000) return context.text("Offer too large",413);
+      try {
+        const r=await fetch("http://127.0.0.1:4844/offer",{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${config.relayToken}`},body:raw,signal:AbortSignal.timeout(25000)});
+        if(!r.ok) return context.text("Pipecat connection failed; check staging logs",502);
+        return new Response(r.body,{headers:{"content-type":"application/json","cache-control":"no-store"}});
+      } catch { return context.text("Pipecat service unavailable",503); }
+    }, {auth:"local"});
     bb.http.route("GET", "/duplex", async () => new Response(duplexPage.replace("__VOICE__", duplexVoice), {headers:{"content-type":"text/html; charset=utf-8", "cache-control":"no-store"}}), {auth:"local"});
     for (const path of ["speech", "transcribe", "turn", "diagnostics"] as const)
       bb.http.route(

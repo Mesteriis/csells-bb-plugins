@@ -1,0 +1,59 @@
+{
+  "at": "2026-11-15T00:13:27.635Z",
+  "method": "Actual staged Pipecat + TURN over private SSH tunnel; generated microphone carrying known Alfred speech fixture -> real STT -> Jarvis -> Alfred. Not physical Android/car verification.",
+  "rms": 0.11735865123852213,
+  "tailMs": 202.5,
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1600.699999988079,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 2239.5,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 11616,
+      "chars": 1612
+    },
+    {
+      "phase": "speaking",
+      "at": 11739.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 17597.599999964237,
+      "chars": 0
+    },
+    {
+      "phase": "listening",
+      "at": 17597.799999952316,
+      "chars": 0
+    },
+    {
+      "phase": "transcribing",
+      "at": 18761.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "transcript",
+      "at": 20329.5,
+      "chars": 20
+    },
+    {
+      "phase": "response",
+      "at": 22233.19999998808,
+      "chars": 407
+    },
+    {
+      "phase": "speaking",
+      "at": 22332.799999952316,
+      "chars": 0
+    }
+  ],
+  "errors": []
+}

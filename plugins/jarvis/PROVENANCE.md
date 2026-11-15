@@ -27,3 +27,7 @@ Pipecat https://github.com/pipecat-ai/pipecat at `1bc2e37b15566cd34bb6941a335ce0
 No LiveKit model weights are used. Pocket/Alfred remains the registered lab service; Jarvis does not redistribute its model or voice data.
 
 `relay/questions.mjs` implements the public BB 0.49 `provider-codex/async-question` data contract, verified against the installed renderer and server. It uses BB's question/option IDs and `threads.interactions.respond`; it does not embed the provider implementation or accept arbitrary plugin response schemas.
+
+## Pipecat round-trip spike (2026-11-14)
+
+`spikes/pipecat/server.py` integrates the actual Pipecat library at `1bc2e37b15566cd34bb6941a335ce09c3bbbab8c` (BSD-2-Clause; existing notice in `third-party/pipecat/LICENSE`). It uses SmallWebRTCTransport, VADProcessor/Silero, PipelineWorker and interruption/output frames through public interfaces. Adapter and page code are local. Matching source and resolved Python dependencies are preserved outside the disposable VM in task storage. Coturn is installed from Debian's package for the isolated staging relay; no coturn code is copied into this repository. This transport spike does not change the existing Smart Turn model license/provenance entry.
