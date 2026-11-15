@@ -171,3 +171,11 @@ and substantial response text, with the actual stories retained for review.
 A matching rate multiplier does not imply matching perceived pace across engines.
 Browser passage duration includes internal synthesis gaps; native PCM duration
 does not. The user should grade audible pace separately from the numerical preset.
+
+Final readiness check: switching from Qwen back to CosyVoice once exceeded the
+45-second cold preparation deadline. The worker was killed and the request returned
+503. Cgroup memory-limit reclaim events were present, but no OOM kill; the precise
+cause is not established. One explicit retry loaded, synthesized its warm-up and
+became ready in 27,620 ms. CosyVoice is left loaded for this review. This startup
+failure remains a release gap, separate from its passing warm conversations; no
+response timeout was raised and no failed run was erased.
