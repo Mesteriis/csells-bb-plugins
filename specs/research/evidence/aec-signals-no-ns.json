@@ -1,0 +1,38 @@
+{
+  "method": "AEC3 exact10ms frames, known far speech + separately generated near speech + two echo paths; no network or physical room",
+  "results": [
+    {
+      "delayMs": 80,
+      "echoReductionDb": 61.703407287597656,
+      "nearCorrelation": 0.7161070065437214,
+      "nearGain": 0.8038581550569736,
+      "alignmentSamples": 126,
+      "stoiProcessed": 0.7736384071005095,
+      "stoiMixture": 0.9891573310530775,
+      "stoiCleanBaseline": 0.9997275964707588,
+      "cleanBaselineCorrelation": 0.8121958119773756
+    },
+    {
+      "delayMs": 200,
+      "echoReductionDb": 61.69676208496094,
+      "nearCorrelation": 0.7630155421531379,
+      "nearGain": 0.8803069202356464,
+      "alignmentSamples": 126,
+      "stoiProcessed": 0.8513941428760179,
+      "stoiMixture": 0.9854348041677871,
+      "stoiCleanBaseline": 0.9997275964707588,
+      "cleanBaselineCorrelation": 0.8121958119773756
+    },
+    {
+      "delayMs": 350,
+      "echoReductionDb": 61.825927734375,
+      "nearCorrelation": 0.7533597939389381,
+      "nearGain": 0.865051154608017,
+      "alignmentSamples": 125,
+      "stoiProcessed": 0.802425600221068,
+      "stoiMixture": 0.9763507116334003,
+      "stoiCleanBaseline": 0.9997275964707588,
+      "cleanBaselineCorrelation": 0.8121958119773756
+    }
+  ]
+}

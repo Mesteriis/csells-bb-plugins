@@ -1,0 +1,53 @@
+# Reference-based echo cancellation spike
+
+2026-11-14. Chris requested research into established live-conversation implementations and a spike using the resulting design.
+
+## Research decision before implementation
+
+The [AEC source audit](voice-echo-aec-source-audit.md) and [conversation source audit](voice-echo-conversation-source-audit.md) separate four responsibilities: reference-based acoustic echo cancellation, speech onset detection, interruption policy, and end-of-turn/transcription. The earlier final-transcript matching approach delayed cancellation and could reject a real person repeating Jarvis's words. It is not the selected architecture.
+
+Use `pywebrtc-audio` AEC3, pinned source1bc860a2051c2b9b3c10b8c778770794b9321d84, as an additional server-side reference canceller before Pipecat Silero. Keep browser AEC enabled and persistent native WebRTC tracks. Reuse the library's adaptive filtering, delay estimation and double-talk behavior; do not implement a homegrown DSP classifier. The first experiment fed reference from frames pulled by the RTP sender. Tests below rejected that timing approach. The current experiment instead pairs a browser received-track reference with microphone capture over stereo Opus, then separates the channels before AEC/VAD. Submit exact10ms blocks and retain filter history across interruptions. Browser AEC/noise processing remains enabled. Extra server noise suppression was tested both on and off; neither variant passed acceptance. The preserved implementation uses the on variant that passed whole-response echo rejection, and is explicitly unqualified. This paired-reference design is a new integration experiment, not a claim of standard production mobile practice. Browser-generated microphone tests bypass browser hardware AEC and qualify only this additional layer.
+
+Once clean audio reaches VAD, stop output on onset without waiting for SmartTurn or STT. Keep existing real BB STT, director and Alfred services. Explicit Stop remains unconditional. No microphone mute during playback and no final-transcript echo matching in this mode. AEC is not a guarantee against arbitrary sound/background speakers; genuine pause/resume and conversational backchannel policy remain distinct work.
+
+Deployment: existing disposable VM100 and restricted relay, isolated Pipecat spike route/process configuration; stable BB unchanged. No new hosted provider credentials, no shared secret copies. Keep rollback to the prior spike via configuration. Prototype skill's UI/state-simulation templates do not answer the media question; use a real media-service spike and one simple conversation page instead.
+
+## Verification criteria
+
+1. Actual staged WebRTC browser round trip with real Jarvis/Alfred and microphone continuously active.
+2. Echo-only output fed into input: no speech-start interruption after convergence. Include delayed/attenuated/reverberant echo and report initial-convergence behavior separately.
+3. Independent near-end speech added while echo is present: onset interrupts output promptly; speech remains intelligible to real STT and a new voiced answer follows. Test a phrase also present in output so transcript deduplication cannot produce a false pass.
+4. Measure speech stimulus onset to decoded output stop, not just time after the cancellation event. Preserve full phase timestamps and AEC input/output energy/reference backlog without saving user audio.
+5. Exercise long output, explicit Stop/End, and no stale replay. Record transport delay and limitations; AEC3's finite reference history may limit server-side cancellation at large network/Bluetooth delays.
+6. Do not infer physical car audibility or echo cancellation from a browser harness. Preserve failed experiments and open acceptance rather than declaring hardware success.
+
+## Evidence and unsuccessful experiments
+
+Source audits above cover Pipecat, LiveKit, Daily, AIRI, WebRTC, Speex and concrete native bindings, following the earlier fifteen-implementation mobile audit. No transcript-identity classifier or homegrown waveform subtraction was adopted.
+
+- [AEC-disabled baseline](evidence/aec-doubletalk-before.json): digital echo caused a false interruption; actual user-stimulus interruption took3.70seconds.
+- [Initial server-render reference](evidence/aec-doubletalk-after.json):120ms injected delay and strong near speech produced zero false interruptions and387ms onset detection. This narrow pass did not generalize.
+- [Quieter speech](evidence/aec-doubletalk-quiet.json) missed the1second spike ceiling. [Reference timing instrumentation](evidence/aec-failed-delay-measured.json) then measured530–532ms effective echo lag, outside the default five-filter estimator's nominal512ms search.
+- [Five-filter long-delay DSP](evidence/aec-signals-default-long-delay.json) suppressed only1.8–2.3dB at530/800ms. The supported ten-filter configuration increased that to about73dB in the [same controlled test](evidence/aec-signals-extended-long-delay.json). Twelve filters were investigated/built but rejected before installation: the vendored update implementation supports at most ten.
+- [Ten-filter server-render browser test](evidence/aec-doubletalk-extended-quiet.json) still falsely interrupted after playout timing changed. Larger search alone was insufficient, motivating the paired browser reference.
+- [Paired-reference active-speech test](evidence/aec-doubletalk-paired-active.json): separate channels verified with playback reference present and microphone silent.250ms injected echo at gain0.35, independent voice at gain0.25; zero false interruptions;397ms to interruption event,417ms to last decoded old audio, correct full “Wait, tell me what2 plus2 is,” then a voiced answer. This run included the extra server NS; subsequent ablations are listed below.
+- [Whole-response path change](evidence/aec-echo-path-change.json):58.2seconds of production/2,737,152 PCM bytes completed with zero additional interruptions, input dispatches or errors. Echo changed from120ms/gain0.4 to350ms/gain0.55 at15seconds. This proves no cancellation in this fixture; it is not word-aligned physical playback verification.
+
+Initial waveform-correlation assertions failed and are not reclassified as passes. [STOI ablation](evidence/aec-signals-stoi.json) found processed double-talk scores0.77–0.85 vs clean-through-pipeline0.977 and unprocessed mixture0.98 on this narrow fixture. [Removing NS](evidence/aec-signals-no-ns.json) did not remove that long-utterance degradation. Waveform correlation is not an intelligibility criterion, but these baseline-relative results show real distortion; echo-only ERLE is not evidence of preserved speech. No universal STOI product threshold is asserted.
+
+The pinned AEC dependency/build/patch/hash is documented in `plugins/jarvis/spikes/pipecat/AEC-BUILD.md`. [Native processing timing](evidence/aec-cpu.json) measured0.118ms p95 per10ms block with ten filters and NS on the2vCPU VM; this excludes graph/network/diagnostic overhead. Runtime logs retain safe per-second energy and lag/coherence metrics and realized browser capture settings, not personal microphone recordings. Lag correlation is diagnostic only and does not control the canceller.
+
+## Short-control rejection and final decision
+
+[Experiment outcomes](evidence/aec-experiment-outcomes.json) retain failures as well as passes. The same synthesized0.606second “Wait” was correctly recognized by the real SDK with the unchanged English-context prompt when submitted clean. Through the live paired-reference pipeline it became Japanese “hai”, “8”, “Right”, “Link” or “Wade” across tested conditions. Turning off server NS restored onset detection in the no-echo case but did not restore reliable recognition. Raising speech gain did not solve it. A controlled tagged fixture capture confirmed the live utterance was still ambiguous to the real recognizer; adding a normal control-vocabulary prompt did not repair it. That temporary fixture-only recording instrument was removed; no general microphone recording was added.
+
+Offline comparison of the same short fixture gave near gain0.227 with NS versus0.798 without NS; the no-echo AEC-only WAV transcribed correctly, while its controlled echo version produced the homophone “weight.” This narrows the failure to the live signal/codec/cancellation path without proving a single root cause. Do not attribute every error to STT or claim the buffer is proven to truncate the word.
+
+Removing NS then failed [whole-response path change](evidence/aec-echo-path-change-no-ns.json), with two false interruptions. Restoring Pipecat's prior VAD settings still produced one false interruption. This is a suppression/preservation tradeoff in this integration, not a passed solution. Default-engine transparent-mode behavior, codec/reference differences and hardware AEC interactions require further qualification; no custom amplitude bypass was added.
+
+**Reject this paired server-AEC integration as the production remedy.** Preserve the source as a falsifiable spike behind `JARVIS_AEC3`, with research status visible on its page. Do not ask Chris to qualify it in the car as though short-word acceptance passed. The standards-backed implementation direction remains endpoint AEC close to capture/render hardware, realized device/routing diagnostics, and a maintained conversation framework's separate onset, end-of-turn and genuine pausable playout policies. LiveKit's adaptive interruption is a concrete alternative but requires its Cloud inference credentials; simply migrating self-hosted transport does not replace Android's browser AEC. The existing Pipecat adapter still lacks reversible false-interruption recovery and streaming STT. This research does not establish a fully working mobile implementation or authorize promotion.
+
+## Acceptance remains open
+
+This spike is not approved for production. Native browser AEC is the standards-backed primary mechanism; paired server AEC remains an experimental residual layer. Android/Bluetooth hardware, off-LAN media, short/quiet speech preservation,250ms interruption target, semantic backchannels, true pause/resume, streaming STT, network recovery and30-turn acceptance remain separate requirements. Incomplete SmartTurn decisions can also still wait for another utterance; the adapter needs bounded end-of-turn handling. The existing route, credentials and expiry remain task-owned. Stable BB is unchanged.
+

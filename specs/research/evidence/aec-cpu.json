@@ -1,0 +1,6 @@
+{
+  "method": "3000 serialized10ms blocks,10filter AEC3+NS, VM2vCPU while separate browser run active; DSP only, excludes graph/network/diagnostics",
+  "meanMs": 0.0982299183694219,
+  "p95Ms": 0.11756749699998181,
+  "maxMs": 3.174459001456853
+}

@@ -2,6 +2,8 @@
 
 2026-11-14 local date; evidence timestamps UTC November15. Disposable VM100, existing task-owned restricted BB relay and real services. Not promoted.
 
+Current follow-up: [reference-based AEC3 spike](voice-echo-spike-decision.md) supersedes the transcript-qualified interruption path below when `JARVIS_AEC3=1`. The historical results and remaining product requirements are retained.
+
 ## What runs
 
 Authenticated BB route `/api/v1/plugins/jarvis/http/pipecat` serves one conversation page. Its SDP and short-lived ICE credentials go through authenticated BB routes. Pipecat SmallWebRTC receives microphone RTP, Silero detects speech onset/end, the existing real Smart Turn service evaluates end-of-turn, and existing configured BB STT transcribes the utterance. The real Jarvis director answers with real session context; Alfred PCM streams back through Pipecat's persistent RTP output track. The browser has no16k capture worklet or sentence WAV queue on this path.

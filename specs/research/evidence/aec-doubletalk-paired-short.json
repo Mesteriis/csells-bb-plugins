@@ -1,0 +1,442 @@
+{
+  "at": "2026-11-15T06:39:14.444Z",
+  "method": "Actual staged WebRTC/STT/Jarvis/Alfred. Delayed digital echo at0.35 plus independent macOS Samantha spoken input. Not physical car.",
+  "channelSeparation": true,
+  "echoDelay": 0.35,
+  "nearGain": 0.25,
+  "falseInterruptions": 0,
+  "onsetMs": 425.69999998807907,
+  "decodedQuietMs": 723.5,
+  "decodedStopMs": 626.6999999880791,
+  "transcript": "はい。",
+  "events": [
+    {
+      "type": "jarvis",
+      "phase": "ready",
+      "aec": true,
+      "at": 1350.4000000357628,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 2051.199999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 2271.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 3272.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 4376.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 5311.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 6315.300000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 7399.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 8393.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 9413.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 10432.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 11033.400000035763,
+      "characters": 1173
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 11131,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 11435.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0.00001,
+      "referenceRms": 0.02556,
+      "captureChannels": 2,
+      "at": 12446.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.537,
+      "inputRms": 0.00049,
+      "outputRms": 0.00001,
+      "referenceRms": 0.04415,
+      "captureChannels": 2,
+      "at": 13456.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.932,
+      "inputRms": 0.02226,
+      "outputRms": 0.00001,
+      "referenceRms": 0.05116,
+      "captureChannels": 2,
+      "at": 14478.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 364,
+      "referenceCoherence": 0.836,
+      "inputRms": 0.0097,
+      "outputRms": 0.00001,
+      "referenceRms": 0.01595,
+      "captureChannels": 2,
+      "at": 15485.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 16498.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.973,
+      "inputRms": 0.0097,
+      "outputRms": 0,
+      "referenceRms": 0.03812,
+      "captureChannels": 2,
+      "at": 17505.69999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.981,
+      "inputRms": 0.02985,
+      "outputRms": 0,
+      "referenceRms": 0.08977,
+      "captureChannels": 2,
+      "at": 18524.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.971,
+      "inputRms": 0.01646,
+      "outputRms": 0,
+      "referenceRms": 0.03736,
+      "captureChannels": 2,
+      "at": 19527.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.9,
+      "inputRms": 0.00994,
+      "outputRms": 0,
+      "referenceRms": 0.01293,
+      "captureChannels": 2,
+      "at": 20548.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 21567.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.979,
+      "inputRms": 0.01711,
+      "outputRms": 0,
+      "referenceRms": 0.05725,
+      "captureChannels": 2,
+      "at": 22574.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-start",
+      "at": 22929,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 22943.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "listening",
+      "at": 22943.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 365,
+      "referenceCoherence": 0.955,
+      "inputRms": 0.03173,
+      "outputRms": 0.01879,
+      "referenceRms": 0.05262,
+      "captureChannels": 2,
+      "at": 23591.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcribing",
+      "at": 23602.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcript",
+      "at": 24492.19999998808,
+      "characters": 3
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0.00442,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 24606.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 25610,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 26748.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 27706.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 28713.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 29728.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 30583.30000001192,
+      "characters": 52
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 30675.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 30737.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 31750.100000023842,
+      "characters": 0
+    }
+  ],
+  "errors": []
+}

@@ -27,6 +27,9 @@ logger.remove(); logger.add(__import__('sys').stderr, level='WARNING')
 logging.basicConfig(level=logging.INFO)
 handler = SmallWebRTCRequestHandler(ice_servers=['stun:stun.l.google.com:19302'])
 runners = set()
+AEC_ENABLED = os.environ.get('JARVIS_AEC3') == '1'
+if AEC_ENABLED:
+    from aec import EchoInput
 
 class Bridge(FrameProcessor):
     def __init__(self, pc, token):
@@ -38,7 +41,7 @@ class Bridge(FrameProcessor):
         self.input_job=None; self.output_until=0
         self.job = None; self.generation = 0; self.last_spoken = ''; self.was_speaking = False
     def event(self, phase, **data):
-        logging.info(json.dumps({'stage':'pipecat','phase':phase,'clientId':self.client,'at':time.time(), 'generation':self.generation, **{k:v for k,v in data.items() if k in ('reason','bytes','durationMs')}}))
+        logging.info(json.dumps({'stage':'pipecat','phase':phase,'clientId':self.client,'at':time.time(), 'generation':self.generation, **{k:v for k,v in data.items() if k in ('reason','bytes','durationMs','inputRms','outputRms','referenceLagMs','referenceCoherence','referenceRms','captureChannels','echoCancellation','noiseSuppression','autoGainControl','captureSampleRate','captureChannelCount','contextSampleRate','pairedReference')}}))
         self.pc.send_app_message({'type':'jarvis','phase':phase, **data})
     async def relay(self, path, data=None, raw=None):
         headers={'authorization':self.token,'x-jarvis-client':self.client,'x-jarvis-lease':self.lease}
@@ -71,10 +74,13 @@ class Bridge(FrameProcessor):
             self.pre.append(frame.audio)
             return
         if isinstance(frame,VADUserStartedSpeakingFrame):
-            self.was_speaking = bool(self.job and not self.job.done()) or time.monotonic()<self.output_until
+            if AEC_ENABLED:
+                self.event('speech-start')
+                await self.interrupt()
+            self.was_speaking = not AEC_ENABLED and (bool(self.job and not self.job.done()) or time.monotonic()<self.output_until)
             if self.input_job:
                 self.input_job.cancel(); await asyncio.gather(self.input_job,return_exceptions=True)
-            # Raw VAD is only a candidate. Never flush audio before qualifying it.
+            # Legacy mode waits for transcript qualification; AEC mode uses cleaned onset.
             if self.was_speaking: self.event('speech-candidate')
             self.audio = self.audio if self.hearing else bytearray(b''.join(self.pre))
             self.hearing=True
@@ -91,7 +97,7 @@ class Bridge(FrameProcessor):
             async with self.http.post('http://127.0.0.1:4843/turn',data=floats[-512000:]) as r:
                 if r.status!=200: raise RuntimeError('Turn detection unavailable')
                 complete=(await r.json())['complete']
-            if not complete and not was_speaking:
+            if not complete and (AEC_ENABLED or not was_speaking):
                 self.audio=bytearray(raw); self.hearing=True; return
             b=io.BytesIO()
             with wave.open(b,'wb') as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000); w.writeframes(raw)
@@ -105,10 +111,10 @@ class Bridge(FrameProcessor):
             normalized=' '.join(words)
             short_control=normalized in {'stop','wait','yes','no','stop speaking','hold on','be quiet','no thanks'}
             echo=bool(words) and (normalized in ' '.join(spoken) or any(SequenceMatcher(None,words,spoken[i:i+len(words)]).ratio()>=.75 for i in range(len(spoken))))
-            if was_speaking and (echo or (not short_control and len(words)<3)):
+            if not AEC_ENABLED and was_speaking and (echo or (not short_control and len(words)<3)):
                 self.event('speech-rejected',reason='echo' if echo else 'unconfirmed-short-speech'); return
             if generation != self.generation: return
-            await self.interrupt()
+            if not AEC_ENABLED: await self.interrupt()
             self.event('transcript',text=text)
             kw={'text':text}
             if self.focus: kw['presentedQuestion']=self.focus
@@ -175,18 +181,24 @@ async def offer(req):
         except Exception as e:
             setup_error.append(e)
             await bridge.http.close(); await pc.disconnect(); raise
-        transport=SmallWebRTCTransport(webrtc_connection=pc,params=TransportParams(audio_in_enabled=True,audio_in_sample_rate=16000,audio_out_enabled=True,audio_out_sample_rate=24000))
-        pipeline=Pipeline([transport.input(),VADProcessor(vad_analyzer=SileroVADAnalyzer(params=VADParams(start_secs=.2,stop_secs=.5))),bridge,transport.output()])
+        transport=SmallWebRTCTransport(webrtc_connection=pc,params=TransportParams(audio_in_enabled=True,audio_in_sample_rate=16000,audio_in_channels=2 if AEC_ENABLED else 1,audio_out_enabled=True,audio_out_sample_rate=24000,audio_out_10ms_chunks=1 if AEC_ENABLED else 4))
+        input_processors=[]
+        if AEC_ENABLED:
+            input_processors.append(EchoInput(bridge.event))
+        pipeline=Pipeline([transport.input(),*input_processors,VADProcessor(vad_analyzer=SileroVADAnalyzer(params=VADParams(start_secs=.1 if AEC_ENABLED else .2,stop_secs=.5,min_volume=.4 if AEC_ENABLED else .6))),bridge,transport.output()])
         task=PipelineWorker(pipeline,enable_rtvi=False,params=PipelineParams(audio_in_sample_rate=16000,audio_out_sample_rate=24000))
         @transport.event_handler('on_client_connected')
         async def ready(*_):
-            bridge.event('ready')
+            bridge.event('ready',aec=AEC_ENABLED)
         @transport.event_handler('on_client_disconnected')
         async def gone(*_): await task.cancel()
         @pc.event_handler('app-message')
         async def message(_,msg):
             try:
-                if msg.get('type')=='heartbeat': await bridge.command('heartbeat')
+                if msg.get('type')=='capture-settings':
+                    fields=('echoCancellation','noiseSuppression','autoGainControl','captureSampleRate','captureChannelCount','contextSampleRate','pairedReference')
+                    bridge.event('capture',**{k:msg[k] for k in fields if isinstance(msg.get(k),(bool,int,float))})
+                elif msg.get('type')=='heartbeat': await bridge.command('heartbeat')
                 elif msg.get('type')=='end':
                     await task.cancel()
                 elif msg.get('type')=='stop':
@@ -210,6 +222,10 @@ async def offer(req):
         runner.add_done_callback(runners.discard)
     answer=await handler.handle_web_request(SmallWebRTCRequest(sdp=body['sdp'],type=body['type']),connected)
     if setup_error: raise web.HTTPConflict(text='End the existing Jarvis conversation before starting this spike.')
+    if AEC_ENABLED:
+        opus=re.search(r'a=rtpmap:(\d+) opus/48000',answer['sdp'])
+        if not opus: raise RuntimeError('Opus required for paired reference')
+        answer['sdp']=re.sub(r'(a=fmtp:'+opus[1]+r' [^\r\n]*)',r'\1;stereo=1;sprop-stereo=1;maxaveragebitrate=128000',answer['sdp']) if 'a=fmtp:'+opus[1]+' ' in answer['sdp'] else answer['sdp'].replace(opus[0]+'/2\r\n',opus[0]+'/2\r\na=fmtp:'+opus[1]+' stereo=1;sprop-stereo=1;maxaveragebitrate=128000\r\n')
     return web.json_response(answer)
 async def ice(req):
     token=req.headers.get('authorization','')
@@ -219,7 +235,7 @@ async def ice(req):
     username=str(int(time.time())+300)+':jarvis-spike'
     secret=Path('/home/tester/jarvis/turn-secret').read_text().strip().encode()
     credential=base64.b64encode(hmac.new(secret,username.encode(),hashlib.sha1).digest()).decode()
-    return web.json_response({'iceServers':[{'urls':os.environ.get('JARVIS_TURN_URL','turn:127.0.0.1:4845?transport=tcp'),'username':username,'credential':credential}],'iceTransportPolicy':'relay'})
+    return web.json_response({'captureReference':AEC_ENABLED,'iceServers':[{'urls':os.environ.get('JARVIS_TURN_URL','turn:127.0.0.1:4845?transport=tcp'),'username':username,'credential':credential}],'iceTransportPolicy':'relay'})
 app=web.Application(client_max_size=100000); app.router.add_post('/offer',offer); app.router.add_get('/ice',ice)
 async def shutdown(_):
     await handler.close()

@@ -1,0 +1,49 @@
+--- a/bindings/webrtc_audio_bindings.cpp
++++ b/bindings/webrtc_audio_bindings.cpp
+@@ -424,6 +424,8 @@
+         frame_stride_ = frame_size_ * num_channels;
+ 
+         webrtc::EchoCanceller3Config config;
++        // Jarvis server residual AEC includes network + browser + Bluetooth delay.
++        config.delay.num_filters = 10;
+         webrtc::EchoCanceller3Factory factory(config);
+         aec_ = factory.Create(sample_rate, num_channels, num_channels);
+ 
+@@ -513,6 +515,8 @@
+ 
+     void reset() {
+         webrtc::EchoCanceller3Config config;
++        // Jarvis server residual AEC includes network + browser + Bluetooth delay.
++        config.delay.num_filters = 10;
+         webrtc::EchoCanceller3Factory factory(config);
+         aec_ = factory.Create(sample_rate_, num_channels_, num_channels_);
+         hp_filter_ = std::make_unique<webrtc::HighPassFilter>(
+@@ -960,6 +964,8 @@
+ 
+         if (aec_enabled_) {
+             webrtc::EchoCanceller3Config config;
++        // Jarvis server residual AEC includes network + browser + Bluetooth delay.
++        config.delay.num_filters = 10;
+             webrtc::EchoCanceller3Factory factory(config);
+             aec_ = factory.Create(
+                 processing_rate_, num_channels, num_channels);
+@@ -1097,6 +1103,8 @@
+         if (aec_enabled_) {
+             far_buf_ = create_audio_buffer();
+             webrtc::EchoCanceller3Config config;
++        // Jarvis server residual AEC includes network + browser + Bluetooth delay.
++        config.delay.num_filters = 10;
+             webrtc::EchoCanceller3Factory factory(config);
+             aec_ = factory.Create(
+                 processing_rate_, num_channels_, num_channels_);
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@
+ 
+ [project]
+ name = "pywebrtc-audio"
+-version = "0.2.0"
++version = "0.2.0+jarvis2"
+ description = "Python bindings for the WebRTC audio processing module"
+ readme = "README.md"
+ license = "Apache-2.0"

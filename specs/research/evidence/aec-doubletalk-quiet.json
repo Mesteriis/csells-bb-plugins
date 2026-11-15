@@ -1,0 +1,404 @@
+{
+  "at": "2026-11-15T06:14:27.198Z",
+  "method": "Actual staged WebRTC/STT/Jarvis/Alfred. Digital120ms delayed echo at0.35 plus independent macOS Samantha spoken input. Not physical car.",
+  "echoDelay": 0.25,
+  "nearGain": 0.25,
+  "falseInterruptions": 0,
+  "onsetMs": 1107.199999988079,
+  "decodedQuietMs": 1348.5999999642372,
+  "transcript": "Tell me what 2 plus 2 is.",
+  "events": [
+    {
+      "type": "jarvis",
+      "phase": "ready",
+      "aec": true,
+      "at": 1394.5999999642372,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 1913.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 30,
+      "at": 2294.899999976158,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 50,
+      "at": 3312.699999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 50,
+      "at": 4333.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 50,
+      "at": 5336.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 50,
+      "at": 6353.300000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 60,
+      "at": 7355.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 60,
+      "at": 8373.699999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 60,
+      "at": 9395.199999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 60,
+      "at": 10412.199999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 11415,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 12436.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 12449.699999988079,
+      "characters": 1218
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 12548.599999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.00884,
+      "outputRms": 0.00001,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 13456.399999976158,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.0101,
+      "outputRms": 0.00007,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 14455.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.01544,
+      "outputRms": 0.00003,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 15474,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 16500,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.0146,
+      "outputRms": 0.00012,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 17494.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.03083,
+      "outputRms": 0.00004,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 18512.899999976158,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.03047,
+      "outputRms": 0.00002,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 19531.599999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.02268,
+      "outputRms": 0.00001,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 20536,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 21556.69999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.01347,
+      "outputRms": 0.00003,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 22573.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.04121,
+      "outputRms": 0.01896,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 23574.899999976158,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-start",
+      "at": 23833.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 23845,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-candidate",
+      "at": 23845.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.05101,
+      "outputRms": 0.03321,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 24596.69999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0.0304,
+      "outputRms": 0.02945,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 25616.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 26615.899999976158,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcript",
+      "at": 26641.599999964237,
+      "characters": 25
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 27634.099999964237,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 28655.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 29655.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 30635.19999998808,
+      "characters": 14
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 20,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 30677.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 30734.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceBacklogMs": 30,
+      "referenceUnderflows": 0,
+      "maxReferenceBacklogMs": 110,
+      "at": 31680.5,
+      "characters": 0
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "aec-short-noecho",
+    "result": {
+      "text": "Wait."
+    }
+  },
+  {
+    "name": "aec-short-echo",
+    "result": {
+      "text": "weight"
+    }
+  }
+]

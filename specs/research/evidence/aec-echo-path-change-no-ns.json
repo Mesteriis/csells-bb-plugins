@@ -1,0 +1,373 @@
+{
+  "at": "2026-11-15T06:49:02.100Z",
+  "method": "Actual staged services, output fed at gain0.4/delay120ms then gain0.55/delay350ms after15seconds through full response completion. Digital echo injection bypasses browser AEC, not a physical car test.",
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1338.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "capture",
+      "at": 1339.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 1950.6000000238419,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 2255.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 3273.699999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 4293.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 5296,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 6315.800000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 7316.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 8338,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 9362.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 10376.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 11380.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 12398,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 13414.600000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 14415.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 14977,
+      "chars": 1225
+    },
+    {
+      "phase": "speaking",
+      "at": 15082,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 15434.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 16453.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 17456.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 18476.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 19478.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 20499.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 21522.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 22534.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 23536.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 24556.600000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 25578.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 26579,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 27596,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 28613.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 29616.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 30640.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 31660.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 32672.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "speech-start",
+      "at": 32714.600000023842,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 32732.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "listening",
+      "at": 32732.399999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 33677,
+      "chars": 0
+    },
+    {
+      "phase": "transcribing",
+      "at": 33878.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "transcript",
+      "at": 34683.30000001192,
+      "chars": 17
+    },
+    {
+      "phase": "aec",
+      "at": 34696,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 35699.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 36698.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 37716.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 38720.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 39737.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 40738.60000002384,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 40866.10000002384,
+      "chars": 75
+    },
+    {
+      "phase": "speaking",
+      "at": 40963.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 41757.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "speech-start",
+      "at": 42658.5,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 42672,
+      "chars": 0
+    },
+    {
+      "phase": "listening",
+      "at": 42672.60000002384,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 42773.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 43779.5,
+      "chars": 0
+    },
+    {
+      "phase": "transcribing",
+      "at": 43822.10000002384,
+      "chars": 0
+    },
+    {
+      "phase": "transcript",
+      "at": 44681.30000001192,
+      "chars": 33
+    },
+    {
+      "phase": "aec",
+      "at": 44798.10000002384,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 45818,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 46819.10000002384,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 47844.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 48856.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 49019.89999997616,
+      "chars": 80
+    },
+    {
+      "phase": "speaking",
+      "at": 49126.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 49859,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 50877.60000002384,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 51897.10000002384,
+      "chars": 0
+    },
+    {
+      "phase": "generated",
+      "at": 52514.19999998808,
+      "chars": 0,
+      "bytes": 159744,
+      "durationMs": 3496
+    },
+    {
+      "phase": "aec",
+      "at": 52913.60000002384,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 53919.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 54936,
+      "chars": 0
+    }
+  ]
+}

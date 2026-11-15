@@ -1,0 +1,462 @@
+{
+  "at": "2026-11-15T06:35:54.900Z",
+  "method": "Actual staged WebRTC/STT/Jarvis/Alfred. Delayed digital echo at0.35 plus independent macOS Samantha spoken input. Not physical car.",
+  "channelSeparation": true,
+  "echoDelay": 0.25,
+  "nearGain": 0.25,
+  "falseInterruptions": 0,
+  "onsetMs": 397.0999999642372,
+  "decodedQuietMs": 545.3999999761581,
+  "decodedStopMs": 417.2999999523163,
+  "transcript": "Wait, tell me what 2 plus 2 is.",
+  "events": [
+    {
+      "type": "jarvis",
+      "phase": "ready",
+      "aec": true,
+      "at": 1625.9000000357628,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 2033.4000000357628,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 2528.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 3547.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 4552.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 5569.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 6589.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 7604.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 8610.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 9627.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 10630.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 11650.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 11984.700000047684,
+      "characters": 1231
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 12092.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0.00001,
+      "referenceRms": 0.03837,
+      "captureChannels": 2,
+      "at": 12667.300000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.908,
+      "inputRms": 0.00596,
+      "outputRms": 0.00002,
+      "referenceRms": 0.03825,
+      "captureChannels": 2,
+      "at": 13670.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.926,
+      "inputRms": 0.02002,
+      "outputRms": 0.00001,
+      "referenceRms": 0.06225,
+      "captureChannels": 2,
+      "at": 14689.200000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0.01252,
+      "outputRms": 0,
+      "referenceRms": 0.02794,
+      "captureChannels": 2,
+      "at": 15711.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 16715.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.98,
+      "inputRms": 0.02119,
+      "outputRms": 0,
+      "referenceRms": 0.06302,
+      "captureChannels": 2,
+      "at": 17730.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.987,
+      "inputRms": 0.02062,
+      "outputRms": 0,
+      "referenceRms": 0.06237,
+      "captureChannels": 2,
+      "at": 18748.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.973,
+      "inputRms": 0.01357,
+      "outputRms": 0,
+      "referenceRms": 0.02724,
+      "captureChannels": 2,
+      "at": 19754.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 203,
+      "referenceCoherence": 0.85,
+      "inputRms": 0.00477,
+      "outputRms": 0,
+      "referenceRms": 0.01344,
+      "captureChannels": 2,
+      "at": 20770.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 21804.200000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.937,
+      "inputRms": 0.02297,
+      "outputRms": 0,
+      "referenceRms": 0.08799,
+      "captureChannels": 2,
+      "at": 22806.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-start",
+      "at": 23209,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 23224.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "listening",
+      "at": 23226.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.589,
+      "inputRms": 0.04271,
+      "outputRms": 0.02466,
+      "referenceRms": 0.0577,
+      "captureChannels": 2,
+      "at": 23809.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0.174,
+      "inputRms": 0.04548,
+      "outputRms": 0.04412,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 24830.900000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0.02397,
+      "outputRms": 0.02411,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 25836.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcribing",
+      "at": 25852.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcript",
+      "at": 26746.80000001192,
+      "characters": 31
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 26835.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 27852.400000035763,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 28853.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 29871.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 30873.80000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": null,
+      "referenceCoherence": 0,
+      "inputRms": 0,
+      "outputRms": 0,
+      "referenceRms": 0,
+      "captureChannels": 2,
+      "at": 31893.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 32102.200000047684,
+      "characters": 14
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 32196.700000047684,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "aec",
+      "referenceLagMs": 257,
+      "referenceCoherence": 0.971,
+      "inputRms": 0.01097,
+      "outputRms": 0,
+      "referenceRms": 0.03724,
+      "captureChannels": 2,
+      "at": 32909.60000002384,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "generated",
+      "bytes": 55296,
+      "durationMs": 1257,
+      "at": 33356.30000001192,
+      "characters": 0
+    }
+  ],
+  "errors": []
+}

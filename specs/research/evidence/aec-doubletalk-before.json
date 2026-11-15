@@ -1,0 +1,110 @@
+{
+  "at": "2026-11-15T06:10:59.572Z",
+  "method": "Actual staged WebRTC/STT/Jarvis/Alfred. Digital120ms delayed echo at0.35 plus independent macOS Samantha spoken input. Not physical car.",
+  "falseInterruptions": 1,
+  "onsetMs": 3695.2999999523163,
+  "transcript": "Wait, tell me what 2 plus 2 is.",
+  "events": [
+    {
+      "type": "jarvis",
+      "phase": "ready",
+      "aec": false,
+      "at": 1333.699999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 1855.800000011921,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 12277.199999988079,
+      "characters": 1203
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 12388.699999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-candidate",
+      "at": 13414.199999988079,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-rejected",
+      "reason": "echo",
+      "at": 16392.5,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "speech-candidate",
+      "at": 17697.69999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 21653.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcript",
+      "at": 21653.80000001192,
+      "characters": 45
+    },
+    {
+      "type": "jarvis",
+      "phase": "listening",
+      "at": 22922.600000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcribing",
+      "at": 25467.30000001192,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "interrupted",
+      "at": 26227.19999998808,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "transcript",
+      "at": 26227.30000001192,
+      "characters": 31
+    },
+    {
+      "type": "jarvis",
+      "phase": "response",
+      "at": 29923,
+      "characters": 14
+    },
+    {
+      "type": "jarvis",
+      "phase": "speaking",
+      "at": 30014.100000023842,
+      "characters": 0
+    },
+    {
+      "type": "jarvis",
+      "phase": "generated",
+      "bytes": 58368,
+      "durationMs": 1319,
+      "at": 31238.69999998808,
+      "characters": 0
+    }
+  ],
+  "errors": []
+}

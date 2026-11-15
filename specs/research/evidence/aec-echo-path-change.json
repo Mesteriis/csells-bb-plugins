@@ -1,0 +1,388 @@
+{
+  "at": "2026-11-15T06:37:56.692Z",
+  "method": "Actual staged services, output fed at gain0.4/delay120ms then gain0.55/delay350ms after15seconds through full response completion. Digital echo injection bypasses browser AEC, not a physical car test.",
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1435,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 2064.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 2338.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 3356.399999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 4377.099999964237,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 5386.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 6399.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 7415.599999964237,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 8423.800000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 9442.699999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 10460.300000011921,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 11477,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 12475.399999976158,
+      "chars": 1247
+    },
+    {
+      "phase": "aec",
+      "at": 12480.5,
+      "chars": 0
+    },
+    {
+      "phase": "speaking",
+      "at": 12654.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 13496,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 14498.899999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 15505.199999988079,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 16518.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 17519.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 18540,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 19557.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 20559.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 21579.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 22580.599999964237,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 23597.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 24616.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 25621.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 26640.399999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 27656.599999964237,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 28659.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 29678.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 30698.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 31701.399999976158,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 32717.599999964237,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 33739,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 34739.59999996424,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 35759.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 36779.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 37797.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 38799.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 39817.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 40821.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 41842.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 42856.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 43862.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 44884.09999996424,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 45901.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 46905.5,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 47918.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 48937.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 49948.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 50952.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 51951.59999996424,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 52971.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 53986.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 54990.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 56009.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 57029.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 58028.09999996424,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 59048.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 60065.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 61074.30000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 62092.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 63096.89999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 64103.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 65119,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 66129.19999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 67142.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 68158.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 69162.69999998808,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 70183.39999997616,
+      "chars": 0
+    },
+    {
+      "phase": "generated",
+      "at": 70670.39999997616,
+      "chars": 0,
+      "bytes": 2737152,
+      "durationMs": 58197
+    },
+    {
+      "phase": "aec",
+      "at": 71203,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 72205.80000001192,
+      "chars": 0
+    },
+    {
+      "phase": "aec",
+      "at": 73227.5,
+      "chars": 0
+    }
+  ]
+}

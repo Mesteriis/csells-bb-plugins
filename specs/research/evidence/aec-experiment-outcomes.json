@@ -1,0 +1,15 @@
+{
+  "nsOnPairedPhrase": "pass fixture;397ms onset,417ms decoded stop;250ms target still missed",
+  "nsOnWholeEchoPathChange": "pass fixture",
+  "nsOnShortWait": "fail: transcribed Japanese hai",
+  "nsOnShortNoEcho": "fail: input suppressed before VAD",
+  "nsOffShortNoEcho": "fail: detects onset but transcribes8",
+  "nsOffShortEcho": "fail: transcribesRight; louder fixture transcribesLink",
+  "nsOffWholeEchoPathChange": "fail:2false interruptions",
+  "cleanShortSameSdkPrompt": "Wait correct",
+  "offlineAecShortNsOff": "noecho Wait correct;echo weight homophone",
+  "qualification": "not physically tested;not ready for acceptance or promotion",
+  "nsOffDefaultVadWholeEchoPathChange": "fail:1false interruption",
+  "controlledLiveCapture": "Wade under unchanged and control-vocabulary prompts;temporary instrument removed",
+  "preservedVariant": "NSon, VADstart100ms/minvolume0.4;experimental;short-word acceptance failed"
+}

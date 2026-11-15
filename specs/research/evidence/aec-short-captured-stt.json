@@ -1,0 +1,14 @@
+[
+  {
+    "prompt": "An English conversation with Jarvis about BB agents and their questions.",
+    "result": {
+      "text": "Wade."
+    }
+  },
+  {
+    "prompt": "English conversation with Jarvis about BB agents. Short spoken controls include stop, wait, yes, no, hold on, and keep going.",
+    "result": {
+      "text": "Wade."
+    }
+  }
+]
