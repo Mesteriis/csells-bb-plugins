@@ -1,0 +1,502 @@
+{
+  "asOf": "2026-11-15",
+  "candidateRevision": "274acbf0faccc9c8faf941100e8606e1c113d94a",
+  "unitOfCoverage": "scenario family, not executable test count or completion percentage",
+  "requirements": [
+    "specs/vision/jarvis.md",
+    "specs/plans/0001-jarvis.md",
+    "specs/plans/0002-jarvis-conversation-and-speech.md",
+    "specs/plans/0003-jarvis-coordination-and-memory.md",
+    "specs/plans/0004-jarvis-events-and-scheduled-follow-ups.md",
+    "specs/plans/0005-jarvis-livekit-integration.md",
+    "awesome-jarvis/blueprint.md@0378a6801dda9a3345ea7d4a53614f3cd410763f"
+  ],
+  "scenarios": [
+    {
+      "id": "V01",
+      "slice": "B",
+      "scenario": "One-tap briefing and native duplex audio",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "fresh-pass",
+      "source": "voice/src/server.ts; voice/src/browser.ts",
+      "closure": "Browser Start produces real briefing text and decoded Alfred audio; physical route separate."
+    },
+    {
+      "id": "V02",
+      "slice": "B",
+      "scenario": "Thirty representative voice turns per desktop and phone",
+      "implementation": "partial",
+      "evidenceStatus": "fresh-pass-narrow",
+      "source": "voice/src/server.ts",
+      "closure": "30/30 simple generated desktop prompts passed; full mixed suite and phone configuration remain unverified."
+    },
+    {
+      "id": "V03",
+      "slice": "B",
+      "scenario": "Useful response latency p50<=800ms p95<2s",
+      "implementation": "partial",
+      "evidenceStatus": "fresh-fail",
+      "source": "relay/model.mjs; voice/src/relay.ts",
+      "closure": "Measure full end-of-speech to audio; pipeline still batches STT and buffers complete model text."
+    },
+    {
+      "id": "V04",
+      "slice": "B",
+      "scenario": "Barge-in cuts output and preserves worker execution",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "voice/src/server.ts",
+      "closure": "Existing injected interruption passed; test short/quiet controls and worker state together with captured old-audio tail."
+    },
+    {
+      "id": "V05",
+      "slice": "B",
+      "scenario": "False interruption resumes without missing audio",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/server.ts",
+      "closure": "SDK configured but test cough/backchannel recovery, audio continuity and exact resume position."
+    },
+    {
+      "id": "V06",
+      "slice": "B",
+      "scenario": "Thoughtful pauses and continuations preserve one intent",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/server.ts",
+      "closure": "VAD-only end detection; test incomplete phrase + pause + continuation without premature action."
+    },
+    {
+      "id": "V07",
+      "slice": "B",
+      "scenario": "Quiet onset, short yes/no/wait and corrected speech",
+      "implementation": "partial",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "voice/src/server.ts; voice/src/relay.ts",
+      "closure": "Short wait passed spike; continuous correction in audit; short answers and quiet onset need repeated contextual control trials."
+    },
+    {
+      "id": "V08",
+      "slice": "B",
+      "scenario": "Echo and background speech never authorize actions",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/browser.ts; voice/src/relay.ts",
+      "closure": "Browser AEC requested; injected MediaStream bypasses acoustic AEC. Need controlled speaker/double-talk and command-rate denominator."
+    },
+    {
+      "id": "V09",
+      "slice": "B",
+      "scenario": "Microphone-off updates and independent quiet mode",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "voice/src/server.ts; voice/src/browser.ts",
+      "closure": "Real named unsolicited update with capture off demonstrated; busy/autoplay queue cases remain."
+    },
+    {
+      "id": "V10",
+      "slice": "B",
+      "scenario": "Microphone denial preserves text and spoken output",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "voice/src/browser.ts",
+      "closure": "Previous browser permission-denial check passed actual typed delegation; retain replayable regression."
+    },
+    {
+      "id": "V11",
+      "slice": "B",
+      "scenario": "Text/control fallback when voice service is unavailable",
+      "implementation": "partial",
+      "evidenceStatus": "fresh-fail",
+      "source": "voice/src/browser.ts",
+      "closure": "Client requires LiveKit session before enabling Send. Run session503 browser fault; then verify text result through real director after repair."
+    },
+    {
+      "id": "V12",
+      "slice": "B",
+      "scenario": "Alfred busy/expiry/truncation with visible retained updates",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/voice.mjs; relay/http.mjs",
+      "closure": "PCM truncation components pass; need actual busy/expiry/release faults plus retry queue and no lost announcement."
+    },
+    {
+      "id": "V13",
+      "slice": "B",
+      "scenario": "Single owner across two tabs",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "fresh-pass",
+      "source": "voice/src/server.ts",
+      "closure": "Second tab rejected visibly; does not certify handoff or per-user multi-tenant isolation."
+    },
+    {
+      "id": "V14",
+      "slice": "B",
+      "scenario": "Deliberate device handoff and passive live viewers",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "voice/src/server.ts; voice/src/browser.ts",
+      "closure": "Director takeover has unit tests but current companion has no takeover/passive client path."
+    },
+    {
+      "id": "V15",
+      "slice": "B",
+      "scenario": "Reconnect/reload without stale speech or duplicate work",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/server.ts; voice/src/browser.ts",
+      "closure": "Fresh sessions after clean restart passed; outage during a turn, room recovery and uncertain dispatch are not equivalent."
+    },
+    {
+      "id": "V16",
+      "slice": "B",
+      "scenario": "Captions and history reflect actually heard output",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/relay.ts; voice/src/browser.ts",
+      "closure": "Full generated text is shown; external director history not truncated to heard words; no visible conversation history."
+    },
+    {
+      "id": "V17",
+      "slice": "B",
+      "scenario": "Phone layout, keyboard and screen-reader operation",
+      "implementation": "partial",
+      "evidenceStatus": "fresh-pass",
+      "source": "voice/page.mjs",
+      "closure": "390px layout passes; full focus order, errors and screen-reader announcements not audited."
+    },
+    {
+      "id": "V18",
+      "slice": "B",
+      "scenario": "Persistent app-wide active state across panel navigation",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "app.tsx; voice/src/browser.ts",
+      "closure": "Iframe pagehide ends call; no active app-wide orb/session shell."
+    },
+    {
+      "id": "V19",
+      "slice": "B",
+      "scenario": "Configurable voice/persona/model with visible failures",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "relay/model.mjs; relay/voice.mjs; server.ts",
+      "closure": "Operator config selects talker; Alfred/persona and service ports tied to deployment; no product-level choices or login recovery."
+    },
+    {
+      "id": "C01",
+      "slice": "A",
+      "scenario": "Natural delegation through real BB",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "coordinator.mjs; relay/director.mjs",
+      "closure": "Violet/Amber/Cedar real workers created from panel; test varied real requests and targets."
+    },
+    {
+      "id": "C02",
+      "slice": "A",
+      "scenario": "Two long workers plus independent live conversation",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "coordinator.mjs; voice/src/server.ts",
+      "closure": "Nonblocking architecture exists; no current complete concurrent two-worker browser/model scenario."
+    },
+    {
+      "id": "C03",
+      "slice": "A",
+      "scenario": "Project/environment/provider/skill-aware routing",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "coordinator.mjs",
+      "closure": "All spawned work uses one configured tuple; no per-request capability/account discovery or session reuse."
+    },
+    {
+      "id": "C04",
+      "slice": "A",
+      "scenario": "Existing watched work and owned descendants in dashboard",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/browser.ts; relay/director.mjs",
+      "closure": "Dashboard lists owned roots only; watched sessions and descendants absent; no real thread links or selected-context picker."
+    },
+    {
+      "id": "C05",
+      "slice": "A",
+      "scenario": "Ordinary pre-existing question answered exactly once",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/director.mjs",
+      "closure": "Bound ordinary-message unit and historical legacy browser evidence; current LiveKit pre-existing-session control journey unverified."
+    },
+    {
+      "id": "C06",
+      "slice": "A",
+      "scenario": "Structured native/Codex multi-question forms",
+      "implementation": "partial",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "relay/questions.mjs; relay/director.mjs",
+      "closure": "Current real Codex single-question answers confirmed by workers; multi-part only unit tests, unsupported/multiselect use external form."
+    },
+    {
+      "id": "C07",
+      "slice": "A+B",
+      "scenario": "Spoken approval and denial reach exact current action",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/director.mjs",
+      "closure": "Exact approval code exists; real current browser-STT-model allow/deny test matrix absent. Explicit approve once differs from blueprint bare yes."
+    },
+    {
+      "id": "C08",
+      "slice": "A+B",
+      "scenario": "Stale, duplicate and competing-client answers rejected",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/director.mjs",
+      "closure": "Mock SDK race tests pass; repeat with real pending interaction changed on another client before spoken answer."
+    },
+    {
+      "id": "C09",
+      "slice": "A",
+      "scenario": "Steer owned work and verify worker receipt",
+      "implementation": "implemented-narrow",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "coordinator.mjs; relay/director.mjs",
+      "closure": "Real worker returned steering marker after SDK-shape fix; no browser retry stability or uncertainty reconciliation suite."
+    },
+    {
+      "id": "C10",
+      "slice": "A+B",
+      "scenario": "Stop work during briefing or command playback",
+      "implementation": "partial",
+      "evidenceStatus": "fresh-fail",
+      "source": "voice/src/server.ts",
+      "closure": "Busy guard rejects stop before interrupt/dispatch; high-priority control must bypass speaking command lock."
+    },
+    {
+      "id": "C11",
+      "slice": "A+B",
+      "scenario": "Spoken stop kills owned process/descendants and queued restarts",
+      "implementation": "partial",
+      "evidenceStatus": "prior-pass-narrow",
+      "source": "coordinator.mjs; relay/director.mjs",
+      "closure": "Old foreground-process sample; current starting->idle and descendant unit tests. Need spoken onset->actual process death, delayed descendant and disconnected cases."
+    },
+    {
+      "id": "C12",
+      "slice": "A",
+      "scenario": "Named stop and scoped adopted-session cancellation",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "relay/director.mjs",
+      "closure": "Only generic owned-work stop route; no named stop intent, adoption generation or reused-session control."
+    },
+    {
+      "id": "C13",
+      "slice": "A",
+      "scenario": "One request dispatches once across browser retries",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "coordinator.mjs; voice/src/relay.ts",
+      "closure": "Coordinator same-ID test passes; provider creates fresh UUID per talk call, client has no durable request identity."
+    },
+    {
+      "id": "C14",
+      "slice": "A",
+      "scenario": "Uncertain actions reconcile across restart",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "coordinator.mjs; relay/director.mjs",
+      "closure": "Spawn reconciliation exists; no automatic answer/steer receipt reconciliation or operator recovery UI."
+    },
+    {
+      "id": "C15",
+      "slice": "A",
+      "scenario": "Verified results distinct from idle, failure and unknown",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "coordinator.mjs; voice/src/browser.ts",
+      "closure": "verification remains unverified; live BB status displayed but no result-evidence lifecycle or verification workflow."
+    },
+    {
+      "id": "C16",
+      "slice": "A",
+      "scenario": "Domain authority enforced for enabled integrations",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "coordinator.mjs; server.ts",
+      "closure": "No email/spending/lab/code/security enforcement matrix or allowed/denied real-tool tests. BB permissions preserved, not proof of domain enforcement."
+    },
+    {
+      "id": "C17",
+      "slice": "A",
+      "scenario": "Untrusted worker/web/memory text cannot authorize actions",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "relay/director.mjs",
+      "closure": "Tool-less talker and exact handlers help; actual-model adversarial content suite missing, natural action classification is model-dependent."
+    },
+    {
+      "id": "C18",
+      "slice": "A+C",
+      "scenario": "Consequential-only notifications without recursion",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "relay/director.mjs",
+      "closure": "Changed text can trigger speech every30sec; no source mute/dismiss/expiry, explicit auxiliary exclusion or interruption-rate evidence."
+    },
+    {
+      "id": "C19",
+      "slice": "A+C",
+      "scenario": "Durable event replay, supersession and visible failed queue",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/director.mjs",
+      "closure": "Snapshot/delivery journal and supersession tests; no persisted event cursors; failed updates not pending for automatic retry; no queue UI."
+    },
+    {
+      "id": "C20",
+      "slice": "A",
+      "scenario": "Missing/deleted task cannot break unrelated supervision",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "coordinator.mjs",
+      "closure": "tasks uses Promise.all of snapshots; one rejected owned thread can fail all tasks and intent context. Needs real deletion/outage isolation test."
+    },
+    {
+      "id": "M01",
+      "slice": "C",
+      "scenario": "Automatic sourced facts/preferences/people/commitments",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "relay/director.mjs",
+      "closure": "Recent transcript only; implement records, extraction, provenance and explicit-vs-inferred ranking."
+    },
+    {
+      "id": "M02",
+      "slice": "C",
+      "scenario": "Inspect, remember, correct, forget, export and memory-off",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "app.tsx; relay/director.mjs",
+      "closure": "No memory operations or controls; test actual browser utterances and UI parity."
+    },
+    {
+      "id": "M03",
+      "slice": "C",
+      "scenario": "Forgetting survives crash, replay and derived caches",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "relay/director.mjs",
+      "closure": "No tombstones/indexes/purge recovery; test each purge failure phase and restart before claiming deletion."
+    },
+    {
+      "id": "M04",
+      "slice": "C",
+      "scenario": "Past-decision reasoning with source and later correction",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "relay/director.mjs",
+      "closure": "No history-search adapter; last12 exchanges/recent excerpts cannot establish sourced recall."
+    },
+    {
+      "id": "M05",
+      "slice": "C",
+      "scenario": "Private relevant memory only reaches appropriate worker",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "coordinator.mjs",
+      "closure": "No retrieval/scoping or suppression layer; test unrelated-history exclusion and secret handling."
+    },
+    {
+      "id": "P01",
+      "slice": "D",
+      "scenario": "Enabled external event triggers one relevant update",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "server.ts",
+      "closure": "No source adapter/configuration/cursor; real authorized event required, not a mock registry."
+    },
+    {
+      "id": "P02",
+      "slice": "D",
+      "scenario": "Enabled scheduled commitment review executes through BB",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "server.ts",
+      "closure": "No scheduler adapter or review records; explicit source/commitment enablement required."
+    },
+    {
+      "id": "P03",
+      "slice": "D",
+      "scenario": "DST, downtime catch-up and uncertain occurrence recovery",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "server.ts",
+      "closure": "No occurrence ledger; add timezone and uncertain-effect cases to real scheduler suite."
+    },
+    {
+      "id": "P04",
+      "slice": "D",
+      "scenario": "Pause/edit/expire/disable fences work and announcements",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "server.ts",
+      "closure": "No source controls or disable reconciliation; verify real triggers stop, unrelated schedules survive."
+    },
+    {
+      "id": "O01",
+      "slice": "A-D",
+      "scenario": "Install/configure/restart/disable portable BB plugin",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "server.ts; voice/deploy/bb-jarvis-voice.service.example",
+      "closure": "Manual service example, fixed loopback ports and task relay; no companion provisioning/update/disable contract."
+    },
+    {
+      "id": "O02",
+      "slice": "A-D",
+      "scenario": "Correlated per-turn analytics, latency/cost/outcome dashboards",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/src/server.ts; relay/model.mjs",
+      "closure": "Useful operational logs, but model timing lacks turn correlation; no aggregate SLO, task scorecard, cost or failure denominator."
+    },
+    {
+      "id": "O03",
+      "slice": "A-D",
+      "scenario": "Durable state migrations and privacy/retention controls",
+      "implementation": "partial",
+      "evidenceStatus": "unit-only",
+      "source": "relay/main.mjs; relay/director.mjs",
+      "closure": "Version1 JSON only; bounded history but task/decision receipts lack retirement/retention policy; old diagnostics tests do not cover all new logs."
+    },
+    {
+      "id": "O04",
+      "slice": "A-D",
+      "scenario": "Repeatable gated browser/real-model release suite",
+      "implementation": "partial",
+      "evidenceStatus": "unverified",
+      "source": "voice/tests/framing.test.mjs; tests/director.test.mjs",
+      "closure": "Fresh audit harness added; no full release runner/CI job, exact authorization workers and all scenarios not covered."
+    },
+    {
+      "id": "O05",
+      "slice": "A-D",
+      "scenario": "Real-task baseline and independently verified outcomes",
+      "implementation": "absent",
+      "evidenceStatus": "not-implemented",
+      "source": "specs/plans/0001-jarvis.md",
+      "closure": "No frozen direct-BB baseline, intervention budgets or scored lab/research/calendar/concurrent journeys."
+    },
+    {
+      "id": "X01",
+      "slice": "Later",
+      "scenario": "Wake word, ambient sensors and closed/locked listening",
+      "implementation": "excluded",
+      "evidenceStatus": "not-applicable",
+      "source": "specs/vision/jarvis.md",
+      "closure": "Deliberate BB first-release scope choice, not a missed initial implementation requirement."
+    }
+  ]
+}

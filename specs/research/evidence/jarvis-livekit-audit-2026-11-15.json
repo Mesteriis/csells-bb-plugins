@@ -1,0 +1,352 @@
+{
+  "candidateRevision": "274acbf0faccc9c8faf941100e8606e1c113d94a",
+  "at": "2026-11-15T19:42:49.290Z",
+  "method": "Real BB panel, LiveKit/TURN, configured STT, real model and Alfred; generated microphone fixture, not physical Android/AEC acceptance",
+  "summary": {
+    "attempted": 30,
+    "passed": 30,
+    "failed": 0,
+    "latencySamples": 30,
+    "p50Ms": 3347,
+    "p95Ms": 4328,
+    "checksPassed": 4,
+    "checksFailed": 2
+  },
+  "checks": [
+    {
+      "id": "phone-layout",
+      "pass": true
+    },
+    {
+      "id": "start-brief-audio",
+      "pass": true
+    },
+    {
+      "id": "stop-work-during-briefing",
+      "pass": false,
+      "observedError": "Command failed; inspect the current state before retrying."
+    },
+    {
+      "id": "second-owner-rejected",
+      "pass": true
+    },
+    {
+      "id": "typed-with-microphone-off",
+      "pass": true,
+      "captureOff": true
+    },
+    {
+      "id": "typed-fallback-voice-service-unavailable",
+      "pass": false,
+      "observedError": "Error: Injected voice companion unavailable",
+      "method": "Client HTTP fault injection; no model call"
+    }
+  ],
+  "pageErrors": [],
+  "turns": [
+    {
+      "id": "arithmetic-add",
+      "round": 1,
+      "endToAudioMs": 3561,
+      "sttMs": 1181,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "arithmetic-subtract",
+      "round": 1,
+      "endToAudioMs": 3347,
+      "sttMs": 916,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "knowledge",
+      "round": 1,
+      "endToAudioMs": 3253,
+      "sttMs": 769,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "opposite",
+      "round": 1,
+      "endToAudioMs": 3554,
+      "sttMs": 820,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "color",
+      "round": 1,
+      "endToAudioMs": 2815,
+      "sttMs": 855,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "units",
+      "round": 1,
+      "endToAudioMs": 4328,
+      "sttMs": 2145,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "multiply",
+      "round": 1,
+      "endToAudioMs": 2742,
+      "sttMs": 860,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "divide",
+      "round": 1,
+      "endToAudioMs": 2765,
+      "sttMs": 824,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "weekday",
+      "round": 1,
+      "endToAudioMs": 3422,
+      "sttMs": 921,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "self-correction",
+      "round": 1,
+      "endToAudioMs": 3323,
+      "sttMs": 995,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "arithmetic-add",
+      "round": 2,
+      "endToAudioMs": 3535,
+      "sttMs": 750,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "arithmetic-subtract",
+      "round": 2,
+      "endToAudioMs": 3446,
+      "sttMs": 754,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "knowledge",
+      "round": 2,
+      "endToAudioMs": 4117,
+      "sttMs": 1840,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "opposite",
+      "round": 2,
+      "endToAudioMs": 3712,
+      "sttMs": 800,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "color",
+      "round": 2,
+      "endToAudioMs": 3228,
+      "sttMs": 817,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "units",
+      "round": 2,
+      "endToAudioMs": 3145,
+      "sttMs": 940,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "multiply",
+      "round": 2,
+      "endToAudioMs": 3434,
+      "sttMs": 846,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "divide",
+      "round": 2,
+      "endToAudioMs": 3685,
+      "sttMs": 780,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "weekday",
+      "round": 2,
+      "endToAudioMs": 3130,
+      "sttMs": 897,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "self-correction",
+      "round": 2,
+      "endToAudioMs": 2790,
+      "sttMs": 818,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "arithmetic-add",
+      "round": 3,
+      "endToAudioMs": 3242,
+      "sttMs": 787,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "arithmetic-subtract",
+      "round": 3,
+      "endToAudioMs": 3234,
+      "sttMs": 861,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "knowledge",
+      "round": 3,
+      "endToAudioMs": 3111,
+      "sttMs": 892,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "opposite",
+      "round": 3,
+      "endToAudioMs": 3599,
+      "sttMs": 782,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "color",
+      "round": 3,
+      "endToAudioMs": 3793,
+      "sttMs": 1233,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "units",
+      "round": 3,
+      "endToAudioMs": 3394,
+      "sttMs": 973,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "multiply",
+      "round": 3,
+      "endToAudioMs": 3424,
+      "sttMs": 778,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "divide",
+      "round": 3,
+      "endToAudioMs": 3337,
+      "sttMs": 783,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "weekday",
+      "round": 3,
+      "endToAudioMs": 3177,
+      "sttMs": 939,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    },
+    {
+      "id": "self-correction",
+      "round": 3,
+      "endToAudioMs": 4472,
+      "sttMs": 858,
+      "audio": true,
+      "responseCount": 1,
+      "pass": true
+    }
+  ],
+  "componentEvidence": {
+    "candidateRevision": "274acbf0faccc9c8faf941100e8606e1c113d94a",
+    "sourceFilesMatched": 65,
+    "mismatches": [],
+    "componentTests": {
+      "plugins/jarvis/tests/duplex-spike.test.mjs": 2,
+      "plugins/jarvis/tests/audio-transport.test.mjs": 2,
+      "plugins/jarvis/tests/media-playback.test.mjs": 3,
+      "plugins/jarvis/tests/task-notification-queue.test.mjs": 4,
+      "plugins/jarvis/tests/realtime-turn-state.test.mjs": 7,
+      "plugins/jarvis/tests/director.test.mjs": 23,
+      "plugins/jarvis/tests/coordinator.test.mjs": 12,
+      "plugins/jarvis/tests/diagnostics.test.mjs": 3,
+      "plugins/jarvis/tests/relay.test.mjs": 1,
+      "plugins/jarvis/voice/tests/framing.test.mjs": 3
+    },
+    "passedOnCandidateVm": 60
+  },
+  "limits": [
+    "Ten generated prompts repeated three times, not the plans complete representative suite",
+    "No physical Android microphone, speaker/Bluetooth or acoustic echo verification",
+    "Latency begins at detected user-state listening, excludes acoustic endpointing and physical output",
+    "Voice-service unavailable case injects HTTP503 at browser boundary; no mock provider is substituted",
+    "No live approvals, domain side effects, or two-worker concurrency exercised in this run"
+  ],
+  "acceptanceTargets": {
+    "p50Ms": 800,
+    "p95Ms": 2000,
+    "latencyPassed": false
+  },
+  "result": "FAIL: two browser controls/recovery checks and latency targets; 30 simple voice turns pass",
+  "browserVersion": "155.0.8059.39",
+  "browserVersionSource": "installed Chrome for Testing bundle used by the run",
+  "rawInputTranscriptions": 30
+}

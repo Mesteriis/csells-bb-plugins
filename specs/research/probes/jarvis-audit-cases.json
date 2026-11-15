@@ -1,0 +1,12 @@
+[
+ {"id":"arithmetic-add","text":"What is seven plus five? Answer with only the number.","expect":"twelve|12"},
+ {"id":"arithmetic-subtract","text":"What is nine minus four? Answer with only the number.","expect":"five|5"},
+ {"id":"knowledge","text":"Which planet do we live on? Answer in one word.","expect":"earth"},
+ {"id":"opposite","text":"What is the opposite of hot? Answer in one word.","expect":"cold"},
+ {"id":"color","text":"What color is a clear daytime sky? Answer in one word.","expect":"blue"},
+ {"id":"units","text":"Convert two hours to minutes. Answer with only the number.","expect":"120|one hundred (and )?twenty"},
+ {"id":"multiply","text":"What is three times six? Answer with only the number.","expect":"eighteen|18"},
+ {"id":"divide","text":"What is ten divided by two? Answer with only the number.","expect":"five|5"},
+ {"id":"weekday","text":"Name the weekday after Monday. Answer in one word.","expect":"tuesday"},
+ {"id":"self-correction","text":"What is eight plus one? Sorry, eight plus two. Answer only the corrected sum.","expect":"ten|10"}
+]
