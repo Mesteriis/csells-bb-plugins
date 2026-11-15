@@ -50,4 +50,3 @@ Removing NS then failed [whole-response path change](evidence/aec-echo-path-chan
 ## Acceptance remains open
 
 This spike is not approved for production. Native browser AEC is the standards-backed primary mechanism; paired server AEC remains an experimental residual layer. Android/Bluetooth hardware, off-LAN media, short/quiet speech preservation,250ms interruption target, semantic backchannels, true pause/resume, streaming STT, network recovery and30-turn acceptance remain separate requirements. Incomplete SmartTurn decisions can also still wait for another utterance; the adapter needs bounded end-of-turn handling. The existing route, credentials and expiry remain task-owned. Stable BB is unchanged.
-

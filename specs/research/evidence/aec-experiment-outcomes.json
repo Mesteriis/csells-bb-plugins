@@ -11,5 +11,14 @@
   "qualification": "not physically tested;not ready for acceptance or promotion",
   "nsOffDefaultVadWholeEchoPathChange": "fail:1false interruption",
   "controlledLiveCapture": "Wade under unchanged and control-vocabulary prompts;temporary instrument removed",
-  "preservedVariant": "NSon, VADstart100ms/minvolume0.4;experimental;short-word acceptance failed"
+  "preservedVariant": "NSon, VADstart100ms/minvolume0.4;experimental;short-word acceptance failed",
+  "engineeringChecks": {
+    "existingTests": 51,
+    "typecheck": "pass",
+    "vmPluginBuild": "pass",
+    "pythonCompile": "pass",
+    "pipCheck": "pass",
+    "publicUnauthenticatedHttp": 401,
+    "acceptance": "FAILED; engineering checks do not override short-speech/echo failures"
+  }
 }
