@@ -63,3 +63,28 @@ needed. Preserve failed runs and their exact candidate revision.
 This is the first durable real-service baseline, not the complete release suite.
 Missing approval, concurrent-worker, long-pause/noise, recovery, memory, recall,
 events, schedules and real-task outcome journeys remain explicit in the matrix.
+
+
+After the control repair, the outage case first fails voice session creation,
+then clicks Use text and requires a real model answer with microphone controls
+disabled. It does not count merely enabling Send as recovery. The old failing
+baseline remains in Git and the dated evidence file.
+
+For focused control regression, run `jarvis-control-regression.mjs` with the same
+browser/output/review environment variables, plus `JARVIS_CONTROL_MODE=voice`,
+`text-outage`, or `process`. The voice mode checks stop during preparation and
+decoded playback, and rejects a competing text owner. For text-outage, the operator
+must stop only the owned candidate companion first and restore it in a shell trap;
+the test does not alter services itself. It verifies cold loading, a real model
+answer, scoped Stop, and zero media-session requests.
+
+Process mode delegates one real worker through the browser/model, verifies the
+worker PID and command against `JARVIS_WORKER_PID_FILE` (a fresh absolute path in
+task-owned storage), then observes process death after clicking Stop during the
+briefing. The worker sleeps at most 240 seconds and never detaches. This requires
+the worker and test runner to share that task-owned path/host; do not substitute a
+fake process if the environment differs. Failed runs retain evidence and never
+silently retry delegation. `JARVIS_RESUME_WORKER=1` allows a failed harness run to
+continue against that same verified PID without spawning a duplicate. It must not
+be used after that process exits. This is a button-driven foreground-process test,
+not proof of spoken cancellation, detached-process cleanup or future descendants.

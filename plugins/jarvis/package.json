@@ -18,8 +18,8 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "typecheck": "tsc --noEmit",
-    "build": "bb plugin build .",
+    "typecheck": "npm run voice:build && tsc --noEmit",
+    "build": "npm run voice:build && bb plugin build .",
     "voice:install": "cd voice && ONNXRUNTIME_NODE_INSTALL=skip npm ci",
     "voice:build": "npm --prefix voice run build",
     "voice:test": "npm --prefix voice test",

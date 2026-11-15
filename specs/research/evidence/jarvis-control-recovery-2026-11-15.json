@@ -1,0 +1,174 @@
+{
+  "date": "2026-11-15",
+  "baseRevision": "a24f9a0bf0d9c2ec5cdc2aa5149ddc18e7051310",
+  "sourceFilesMatched": 68,
+  "sourceMismatches": [],
+  "sourceHashes": {
+    "voice/build-browser.mjs": "8a8597c901cca4d139651d1c5484f063282ccf99add95f401cfa44b2358920c3",
+    "voice/src/control-lane.ts": "693582c2691eb630e0fe00eb06fbd15f235efd471a4694d10099342820b0fc63",
+    "voice/tests/control-lane.test.mjs": "cad27fb7422a65b3859503151735932eadce13253554a80bcd879e8d61462a36",
+    "PROVENANCE.md": "d9b43dc59d530f8cc57a3d7781f3ef73a49f1047a5ae698f37d059f917e47f16",
+    "README.md": "2aa5a8b5bb04245817cf9ce49cf2bd50db495b30acf5497de516bb5e11729f2e",
+    "app.tsx": "45de21bb99e1bd543714c889cbd5de0d83f08dfb572196a319219b0cf8c79751",
+    "components/Orb.tsx": "9229622f6a407bb2f29854ef9b7930d43f32cd45f16b4078f688fdd3ccd2dc36",
+    "conversation.ts": "ee4a12464d963e48bf71cec07571ed64aab223e16a768887bffe3aba4c84e223",
+    "coordinator.mjs": "670d87e256222f82595f87bc5299d3fe81f9492afcc768639750b7b5898aebf1",
+    "lib/conversation.ts": "da8eb9c41e9be89e01bca53c0d409b9489b36e60361675218a6f6865a5ae66f4",
+    "lib/diagnostics.mjs": "024f15ec3ef41c4941a7eef20cee1ee54f83fe26784b308663d345875aeebf30",
+    "lib/media-playback.mjs": "1a3a2f98aff54dc8b99b5e615fdfa9e40dfa706a339fc5740457c7362ca97641",
+    "lib/pcm-stream.mjs": "e7611846150bc390b9ffca913ef6f25ccbeec3cc9edc329aa01be915e1d3a89f",
+    "lib/vad.ts": "ab4fc347ae8e5554fae144d515cab4bd2db9fc57aa7f15aa1a85996498684948",
+    "package-lock.json": "0fc79bea896f94c25b3a860e2e4ce2adff1ff3592e1f0ed7aa26d4d30048dfc3",
+    "package.json": "c36f726f1047504f1b7e705bc6116d22343e209cb2767bb312de4392733624cd",
+    "relay/diagnostics.mjs": "be7f81f76251a25a0483e10be4080e08f7a202434885b81d49c08b96f030087c",
+    "relay/director.mjs": "5effc49e135bec2a3f3ef174772302e662a6a380e068464cc2c9bf3333c55226",
+    "relay/http.mjs": "d897da15bbab779eb94ffdaa88a29a1a38446aec85cb2a84b31a201be063119d",
+    "relay/main.mjs": "ed64718e438a7afad618504aa205f16bd3e6f6aefe7f9270dc495bd9bc2c3bbd",
+    "relay/model.mjs": "fe7acb3f2f1e440204d0d2340de7b580e365d0af77412a8a61a31abbf76a70e9",
+    "relay/questions.mjs": "1f12e38791453d6b5941757c83f097dcf430ec155a9d69c432f82c17faa76ee8",
+    "relay/voice.mjs": "0cfc68b0fe3394deaff27f3159b768d1d34d542c0d139f53ee340983e87cc34a",
+    "server.ts": "941425f07c43f7b0b28a09e09d71cdb2e108950ab69316a9922b6c7dd1871294",
+    "skills/jarvis/SKILL.md": "8809265d50312c6cd3f141bf8ca0273f1264406f53f3949008994e5ea62c265a",
+    "speech.ts": "ed70fc1adbaa37baf80d927827972b5afc4e295bf07e7fe1a6c5363dbcaeadaa",
+    "spikes/duplex-page.mjs": "fd5a592372b0437be085c043cf84536c4671badf9088e62a868ce36d054fe7f7",
+    "spikes/duplex-voice.mjs": "088bf54d1231a1446952f3605c0130119bf69f8173c28f1d3440a4c5032532e1",
+    "spikes/pipecat/AEC-BUILD.md": "c7918aca53298c09621b91bae8ade830958ef44b33ce41fd85b20d226f787f0d",
+    "spikes/pipecat/README.md": "18265675a924012642235ec07912be9324b9400069849224409b946d4579e0d7",
+    "spikes/pipecat/aec-delay-window.patch": "8b4c214c50b5fdb37957dea7392a19d7b1c23275d29a1a62b449570dbf185d5c",
+    "spikes/pipecat/aec.py": "ecd9a22734a8d407e32852a83a4562730446d0592a81ecdd128f8ede7b347624",
+    "spikes/pipecat/page.mjs": "4ffbbe0934fa255637ae0dddc8e20f37f0b2ee8ecd4ac26e5760ac4989d80f4e",
+    "spikes/pipecat/requirements.lock": "a53822197c5c6bf8c67a795b94ac68c5a8799b07a442d040e556f7e606252d7c",
+    "spikes/pipecat/server.py": "79a18a58a4eebd318d4232ae08b694619eb16ae2c25ca37a40129584f9c1bbf3",
+    "tests/audio-transport.test.mjs": "cd9410f0187a89780bbb29e715fceeba0165098124e1e7bee8af27a348fe72eb",
+    "tests/coordinator.test.mjs": "11e1209ef49d62dd94410ba5e090ab99cf8787b4e8fa9510bd83d8859e82a683",
+    "tests/diagnostics.test.mjs": "45738a4cdaf4234f95a1f8e2484fd23f1c5ab152a00282bd819c608d02778e9b",
+    "tests/director.test.mjs": "b5016c47a408148df12ccb7cbc43222303a487b8c93137f6a4d58497e69b19cd",
+    "tests/duplex-spike.test.mjs": "d9ea4ff99cd008f51bd099367c9bfeb718e9d5439de0276265ca7e7144e90192",
+    "tests/media-playback.test.mjs": "06d9de87e4dea10ed21147176c2d7a1da0211eda1991af9d8ab567e808063d8c",
+    "tests/realtime-turn-state.test.mjs": "faa4bb3ba3e8b2a0594a94220ea2d31c7315daeb0bd38c0cdef5e78059220df9",
+    "tests/relay.test.mjs": "6f2d16fcbffcbbee1428a89ff444c02089ff54be45c2d3d552db89a9e4ad6164",
+    "tests/task-notification-queue.test.mjs": "5231389e98bf0b0cc4a81128732f385cc48253e80880cf994fbd0fc8bbe1c657",
+    "third-party/bb/LICENSE": "765a00e7d79c9ac9a63a912baed02bacb8cd5f4bb1e753e891a7534f51484775",
+    "third-party/pipecat/LICENSE": "e31a733ecb79cbffafd5474e964e5eca15e0a0876a42b1d7253b51b198eb61aa",
+    "third-party/pipecat/LICENSE-APACHE-2.0": "1b53e5436e8d362c67ee40f717db5ddb658559067f2ba341baf12a86c714d383",
+    "third-party/qwen/LICENSE": "1b53e5436e8d362c67ee40f717db5ddb658559067f2ba341baf12a86c714d383",
+    "third-party/qwen/NOTICE": "b954ff4d631b3d571bee0061d651cfb093436124f11dbd6009177e9e5e7b5a35",
+    "third-party/qwen/THIRD_PARTY_NOTICES.md": "d9a04eb90c65a4f0c908093c5975fdaf86de9c9ead5d090db89b286097393718",
+    "tsconfig.json": "c53a4a09f22c1c6069a67d2b7ed4b723b02f722913e1c691089adcb41e47b514",
+    "turn/_whisper_features.py": "139b047d10dee42ad5b4894489012e515a882d8f5e2bffe8ad27b30728fc9968",
+    "turn/requirements.txt": "9a106856cd332380b7661666e140432c87bb5c9ed1dfd2c36df6df6e8a51e02a",
+    "turn/server.py": "2c473549db827226e03c739a215a8a5cac32d11f13877699658674619ca8564e",
+    "vendor/qwen/realtime-turn-state.mjs": "cadfc45fb0f37e3ba36547297adf2f095ead10e328f99405e42ce1ad07eb42aa",
+    "vendor/qwen/task-notification-queue.mjs": "0b43398b6bee1dab9c017e778bcab8682daabd7d4a28ba4a85a47ada6d61e03b",
+    "vendor/qwen/turn-correlation.mjs": "a9d32717e9288d1a856248849b2489387a25a096fe5a8306667d68b0f0c132c0",
+    "voice/README.md": "f20316e2a5c45d055fc06578bdb2e0eef74e067a386ed7715a6d61779125fd82",
+    "voice/deploy/bb-jarvis-voice.service.example": "946cb5c691fb29b0f56402b5427825f7a8fcd6d35d1da8b0b06b21c5da19d564",
+    "voice/package-lock.json": "4ccb931d32f8c54e9584ff4b793a796bf8ab458006b524b0386dedd8be1bb026",
+    "voice/package.json": "e1f0d6ddd78ded95fbc9b12ea0e0298f31ef5dc4eaa343db00cf48f9807c704e",
+    "voice/page.mjs": "dc0e19090af59de50ca532728b8a8e79f4d6e79ac163f6d1d51bca6b66f464e7",
+    "voice/signaling.ts": "ee739176b44a580fc4a0885fad0e7cb36374c0eb8060b671de37baef2688b125",
+    "voice/src/browser.ts": "600889ae8dc7a5b5f8468a29d6eec8e30a92fd1c50789a06ca97529944721392",
+    "voice/src/relay.ts": "9876987db9d813127b17ca378c5f3712fa2d89be52504f57e132e28470ab3a57",
+    "voice/src/server.ts": "824898b578bb909b3acfc0f410e959cffa12661be89f02c1fb23b4c4cf7264d9",
+    "voice/tests/framing.test.mjs": "14f58a8501ad85164c879b8049bd2cb41d99300ab5377ac41d3cf59bd61ceaa5",
+    "voice/tsconfig.json": "464e60b2751506d0692819aea472b2febff171a3f2e22f35b4869331f18d36a0"
+  },
+  "componentTestsPassed": 63,
+  "browserVersion": "155.0.8059.39",
+  "voiceSummary": {
+    "attempted": 30,
+    "passed": 30,
+    "failed": 0,
+    "latencySamples": 30,
+    "p50Ms": 3340,
+    "p95Ms": 4306,
+    "checksPassed": 6,
+    "checksFailed": 0,
+    "latencyPassed": false
+  },
+  "voiceChecks": [
+    {
+      "id": "phone-layout",
+      "pass": true
+    },
+    {
+      "id": "start-brief-audio",
+      "pass": true
+    },
+    {
+      "id": "stop-work-during-briefing",
+      "pass": true,
+      "observedError": ""
+    },
+    {
+      "id": "second-owner-rejected",
+      "pass": true
+    },
+    {
+      "id": "typed-with-microphone-off",
+      "pass": true,
+      "captureOff": true
+    },
+    {
+      "id": "typed-fallback-voice-service-unavailable",
+      "pass": true,
+      "method": "Voice-session HTTP503 injection followed by independent text request to real director/model"
+    }
+  ],
+  "pageErrors": [],
+  "controlRuns": [
+    {
+      "at": "2026-11-15T20:06:43.061Z",
+      "mode": "voice",
+      "checks": [
+        "phone-width layout",
+        "stop during opening briefing preparation",
+        "stop during decoded briefing playback",
+        "text client cannot steal active voice ownership"
+      ],
+      "pageErrors": []
+    },
+    {
+      "at": "2026-11-15T20:08:26.365Z",
+      "mode": "text-outage",
+      "checks": [
+        "phone-width layout",
+        "cold text load and real model answer with companion stopped",
+        "scoped stop independent of voice outage",
+        "text stop supersedes briefing without stale output",
+        "no media-session dependency in text mode"
+      ],
+      "pageErrors": []
+    },
+    {
+      "at": "2026-11-15T20:10:24.670Z",
+      "mode": "process",
+      "checks": [
+        "phone-width layout",
+        "real delegated worker started verified foreground process",
+        "foreground process termination independently observed",
+        "stop during opening briefing preparation",
+        "stop during decoded briefing playback",
+        "text client cannot steal active voice ownership"
+      ],
+      "pageErrors": [],
+      "stopToObservedExitMs": 546
+    }
+  ],
+  "limits": [
+    "Injected desktop microphone does not qualify physical Android or Bluetooth/AEC.",
+    "Click-to-process-exit is one foreground process sample, not spoken-stop or detached-process qualification.",
+    "Text outage test is cold-start; orphaned voice-lease transfer after mid-session crash remains unqualified.",
+    "Latency gate still fails; no full release slice accepted; no promotion."
+  ],
+  "workerFinalState": [
+    {
+      "operationId": "40831f5c-fca8-48bd-a7e6-945a2a95eddc",
+      "threadId": "thr_phszh93vew",
+      "dispatchEnabled": false,
+      "cancellation": "observed-idle",
+      "status": "idle"
+    }
+  ],
+  "retainedHarnessFailure": "Process test initially counted an earlier text response; corrected event window and reused same verified worker PID without duplicate dispatch."
+}

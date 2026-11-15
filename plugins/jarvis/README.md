@@ -2,7 +2,8 @@
 
 Jarvis is a spoken chief of staff for BB threads. **Start Jarvis** opens a LiveKit
 conversation, reads a briefing, and watches recently active work. **Use text**
-starts the same conversation with the microphone off. The page must stay open;
+opens a text-only connection to the same director, even if the voice companion
+is unavailable. The page must stay open;
 the initial tap grants browser playback/microphone access.
 
 Ask “what’s going on?”, “what needs me?”, “switch to [thread title]”, “quiet”,
@@ -24,16 +25,16 @@ Requires BB 0.49+, Plugin SDK 0.6.132 and Node 24+ for the voice companion.
 
 ```sh
 npm ci
+npm run voice:install
 npm run typecheck
 npm test
 npm run build
-npm run voice:install
-npm run voice:build
 npm run voice:test
 ```
 
-The integrated panel requires the separate TypeScript voice companion, LiveKit
-Server, TURN connectivity and restricted relay. See [voice/README.md](voice/README.md)
+Voice requires the separate TypeScript companion, LiveKit Server and TURN
+connectivity. Both voice and text require the restricted relay. The browser bundle
+is embedded in the BB plugin build, so text does not depend on those media services. See [voice/README.md](voice/README.md)
 for configuration and the example systemd service. Installation is currently
 operator-managed; building the plugin does not provision these services.
 Run the candidate only in disposable staging until Chris approves promotion.
@@ -84,6 +85,7 @@ remain acceptance work. Stop receipts do not prove all detached processes ended.
 Persistent personal memory, recall, schedules and external events remain later
 milestones.
 
-See [integration evidence](../../specs/research/jarvis-livekit-integration.md),
+See [control regression evidence](../../specs/research/jarvis-control-recovery-2026-11-15.md),
+[integration evidence](../../specs/research/jarvis-livekit-integration.md),
 [spike evidence](../../specs/research/jarvis-livekit-spike.md), and
 [code provenance](PROVENANCE.md).

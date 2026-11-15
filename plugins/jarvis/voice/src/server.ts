@@ -5,6 +5,7 @@ import { initializeLogger, voice } from '@livekit/agents';
 import { VAD } from '@livekit/agents-plugin-silero';
 import { Room, RoomEvent } from '@livekit/rtc-node';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { ControlLane } from './control-lane.js';
 import { BBSTT, BBDirector, JarvisAgent, Relay } from './relay.js';
 initializeLogger({pretty:false, level:'warn'});
 const configPath=process.env.JARVIS_VOICE_CONFIG??process.env.JARVIS_LIVEKIT_CONFIG;
@@ -29,7 +30,7 @@ class Connection {
   room = new Room(); relay = new Relay(`Bearer ${config.relayToken}`, (p,d)=>this.event(p,d));
   agent = new JarvisAgent(this.relay);
   session = new voice.AgentSession({vad,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
-  ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout; watcher?:NodeJS.Timeout; polling=false; backgroundEpoch=0; commandBusy=false;
+  ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout; watcher?:NodeJS.Timeout; polling=false; backgroundEpoch=0; controls=new ControlLane();
   event(phase:string,detail:Record<string,unknown>={}) {
     log(this.id,phase,detail);
     if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
@@ -62,16 +63,21 @@ class Connection {
   async start() {
     if(this.started) return;
     this.started=true; await this.ready;
-    this.commandBusy=true;
     try {
-      const watching=await this.relay.command('watch',{enabled:true});
-      await this.relay.acknowledge(watching,'delivered');
-      this.event('briefing');
-      await this.agent.speakState(await this.relay.command('brief'));
-    } finally {this.commandBusy=false;}
-    this.watcher=setInterval(()=>void this.poll(),3000);
+      await this.controls.run(async current=>{
+        const watching=await this.relay.command('watch',{enabled:true});
+        await this.relay.acknowledge(watching,'delivered');
+        if(!current())return;
+        this.event('briefing');
+        const state=await this.relay.command('brief');
+        if(current())await this.agent.speakState(state);
+        else await this.relay.acknowledge(state,'interrupted');
+      });
+    } finally {
+      if(!this.closed)this.watcher=setInterval(()=>void this.poll(),3000);
+    }
   }
-  idle() {return !this.closed && !this.commandBusy && !this.relay.busy && this.session.agentState==='listening' && this.session.userState!=='speaking' && (!this.relay.activeSpeech || this.relay.activeSpeech.done());}
+  idle() {return !this.closed && !this.controls.busy && !this.relay.busy && this.session.agentState==='listening' && this.session.userState!=='speaking' && (!this.relay.activeSpeech || this.relay.activeSpeech.done());}
   async poll() {
     if(!this.idle() || this.polling)return;
     this.polling=true; const epoch=this.backgroundEpoch;
@@ -84,13 +90,19 @@ class Connection {
     finally {this.polling=false;}
   }
   async command(action:string,args:Record<string,unknown>={}) {
-    if(this.commandBusy)throw Error('Another command is still running');
-    this.backgroundEpoch++;this.commandBusy=true;
-    try {this.session.interrupt();await this.agent.speakState(await this.relay.command(action,args));}
-    finally {this.commandBusy=false;}
+    const stopping=action==='stop-work';
+    await this.controls.run(async current=>{
+      this.backgroundEpoch++;
+      // A broken media session must never prevent dispatch of scoped stop.
+      try {this.session.interrupt();}
+      catch {this.event('update-error',{text:'Audio could not be interrupted; sending the work control.'});}
+      const state=await this.relay.command(stopping?'talk':action,stopping?{text:'stop work'}:args);
+      if(current())await this.agent.speakState(state);
+      else await this.relay.acknowledge(state,'interrupted');
+    },{preempt:stopping});
   }
   async close() {
-    if(this.closed) return; this.closed=true;
+    if(this.closed) return; this.closed=true; this.controls.close();
     clearInterval(this.heartbeat); clearInterval(this.watcher); sessions.delete(this.id);
     this.event('closing');
     await Promise.allSettled([this.session.close(),this.relay.command('close')]);
@@ -129,7 +141,7 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/command'){
       if(!['brief','questions','watch','quiet','stop-work'].includes(String(body.action))){send(400,{error:'Unknown command'});return;}
       if(['watch','quiet'].includes(String(body.action))&&typeof body.enabled!=='boolean'){send(400,{error:'Invalid mode'});return;}
-      void c.command(body.action==='stop-work'?'talk':String(body.action),body.action==='stop-work'?{text:'stop work'}:['watch','quiet'].includes(String(body.action))?{enabled:body.enabled}:{}).catch(()=>c.event('error',{kind:'command',text:'Command failed; inspect the current state before retrying.'}));send(200,{ok:true});return;
+      void c.command(String(body.action),['watch','quiet'].includes(String(body.action))?{enabled:body.enabled}:{}).catch(()=>c.event('error',{kind:'command',text:'Command failed; inspect the current state before retrying.'}));send(200,{ok:true});return;
     }
     if(req.url==='/tasks'){
       const r=await c.relay.request('tasks','{}','application/json');send(200,await r.json());return;

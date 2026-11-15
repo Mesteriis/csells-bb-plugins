@@ -1,3 +1,4 @@
+import browserSource from './voice/dist/browser-source.mjs';
 import {registerLiveKitSignaling} from "./voice/signaling";
 import {livekitPage} from "./voice/page.mjs";
 import {pipecatPage} from "./spikes/pipecat/page.mjs";
@@ -139,8 +140,7 @@ export default async function plugin(bb: BbPluginApi) {
     registerLiveKitSignaling(bb);
     bb.http.route("GET", "/livekit", async () => new Response(livekitPage, {headers:{"content-type":"text/html; charset=utf-8", "cache-control":"no-store"}}), {auth:"local"});
     bb.http.route("GET", "/livekit-browser.js", async () => {
-      const r=await fetch("http://127.0.0.1:4846/browser.js",{headers:{authorization:`Bearer ${config.relayToken}`},signal:AbortSignal.timeout(10000)});
-      return new Response(r.body,{status:r.status,headers:{"content-type":"application/javascript","cache-control":"no-store"}});
+      return new Response(browserSource,{headers:{"content-type":"application/javascript","cache-control":"no-store"}});
     }, {auth:"local"});
     for (const action of ["session", "ready", "heartbeat", "close", "stop-speaking", "telemetry", "command", "text", "tasks"]) {
       bb.http.route("POST", `/livekit-${action}`, async (context) => {
@@ -149,7 +149,7 @@ export default async function plugin(bb: BbPluginApi) {
         try {
           const r=await fetch(`http://127.0.0.1:4846/${action}`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${config.relayToken}`},body:raw,signal:AbortSignal.timeout(30000)});
           return new Response(r.body,{status:r.status,headers:{"content-type":"application/json","cache-control":"no-store"}});
-        } catch { return new Response(JSON.stringify({error:"LiveKit spike unavailable"}),{status:503,headers:{"content-type":"application/json"}}); }
+        } catch { return new Response(JSON.stringify({error:"Voice service unavailable. Use text to continue."}),{status:503,headers:{"content-type":"application/json"}}); }
       }, {auth:"local"});
     }
     const url = new URL(config.relayBaseUrl);
@@ -216,6 +216,22 @@ export default async function plugin(bb: BbPluginApi) {
         input as never,
       );
     };
+  }
+  // Independent text/control transport. Same schemas, director ownership and
+  // authorization as RPC; no companion, room or voice credentials required.
+  for (const method of ["assistant", "tasks"] as const) {
+    bb.http.route("POST", `/control-${method}`, async context=>{
+      const raw=await context.req.text();
+      if(raw.length>16384)return context.json({error:"Request too large"},413);
+      let input: unknown;
+      try {input=rpcContract[method].input.parse(JSON.parse(raw));}
+      catch {return context.json({error:"Invalid control request"},400);}
+      try {
+        return context.json(await call(method,method==='tasks'?{}:input),200,{"cache-control":"no-store"});
+      } catch(error) {
+        return context.json({error:error instanceof Error?error.message:"Control unavailable"},503,{"cache-control":"no-store"});
+      }
+    },{auth:"local"});
   }
   bb.rpc.register(rpcContract, {
     assistant: async (input) => call("assistant", input),

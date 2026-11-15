@@ -7,11 +7,14 @@ description: Use the Jarvis hands-free staging conversation and understand its e
 
 Open the Jarvis navigation panel. Start Jarvis activates the microphone, briefs
 recent work, and watches for changes. No typed prompt is required. Brief me,
-Keep me updated, and What needs me are direct entry points. Voice commands and
+Keep me updated, and What needs me are available after connecting. Use text
+provides a separate text-only connection when voice is unavailable. It requires
+the same conversation ownership; it never silently takes over another device. Voice commands and
 staging setup are documented in the plugin README.
 
-Answers target the exact question that finished playing. A changed question
-requires a fresh reading. Approvals require an explicit decision for that action;
+Answers target the exact question currently presented by Jarvis. Changed
+questions are revalidated before delivery; text answers bind the displayed
+question. Transport delivery alone never proves that a question was heard. Approvals require an explicit decision for that action;
 thread output and model judgments cannot authorize them. Watching is read-only
 unless Chris separately authorizes directed replies. The staging default permits
 mutations only on task-owned work.

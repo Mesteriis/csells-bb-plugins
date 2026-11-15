@@ -39,7 +39,7 @@ try{
  if(!/updates quiet/.test(await frame.locator('#mode').textContent())){
   await frame.locator('#quiet').click();await wait(()=>/updates quiet/.test(document.querySelector('#mode').textContent));await frame.locator('#stop').click();await page.waitForTimeout(600);
  }
- const second=await browser.newPage();await second.goto(base);const f2=second.frameLocator('iframe[title="Jarvis conversation"]');await f2.locator('#text-start').click();await f2.locator('#error').filter({hasText:/already active/}).waitFor();result.checks.push({id:'second-owner-rejected',pass:true});await second.close();
+ const second=await browser.newPage();await second.goto(base);const f2=second.frameLocator('iframe[title="Jarvis conversation"]');await f2.locator('#text-start').click();await f2.locator('#error').filter({hasText:/already active|active on another device/}).waitFor();result.checks.push({id:'second-owner-rejected',pass:true});await second.close();
  for(let round=0;round<3;round++)for(const c of cases){
   const turn={id:c.id,round:round+1};result.turns.push(turn);
   try{
@@ -65,8 +65,13 @@ try{
  result.checks.push({id:'typed-with-microphone-off',pass:/\b(?:12|twelve)\b/i.test(await frame.locator('#answer').textContent())&&captureOff,captureOff});
  await frame.locator('#end').click();
  // Fault injection tests browser recovery only; no synthetic model/service.
- const fault=await browser.newPage();await fault.route('**/livekit-session',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Injected voice companion unavailable'})}));await fault.goto(base);const ff=fault.frameLocator('iframe[title="Jarvis conversation"]');await ff.locator('#text-start').click();await ff.locator('#error').filter({hasText:/unavailable/}).waitFor();
- result.checks.push({id:'typed-fallback-voice-service-unavailable',pass:await ff.locator('#send').isEnabled(),observedError:await ff.locator('#error').textContent(),method:'Client HTTP fault injection; no model call'});await fault.close();
+ const fault=await browser.newPage();await fault.route('**/livekit-session',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Injected voice companion unavailable'})}));await fault.goto(base);const ff=fault.frameLocator('iframe[title="Jarvis conversation"]');
+ await ff.locator('#start').click();await ff.locator('#error').filter({hasText:/unavailable/}).waitFor();
+ await ff.locator('#text-start').click();await ff.locator('#send').waitFor();
+ await ff.locator('#draft').fill('What is two plus eight? Reply only with the number.');await ff.locator('#send').click();
+ await ff.locator('#answer').filter({hasText:/\b(?:10|ten)\b/i}).waitFor({timeout:60000});
+ result.checks.push({id:'typed-fallback-voice-service-unavailable',pass:await ff.locator('#send').isEnabled()&&await ff.locator('#mic').isDisabled(),method:'Voice-session HTTP503 injection followed by independent text request to real director/model'});
+ await ff.locator('#end').click();await fault.close();
 }catch(e){result.fatal=String(e);console.error(e);}
 finally{
  if(frame){result.events=await events().catch(()=>[]);await frame.locator('#end').click({timeout:2000}).catch(()=>{});}

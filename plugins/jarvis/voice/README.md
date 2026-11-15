@@ -41,7 +41,11 @@ matching API key/secret, signal port 7880, and configured RTC ports. Deployment,
 ownership, networking, cleanup and rollback references are in the lab registry.
 
 Build and reload the parent Jarvis plugin in the same candidate BB instance after
-changing its HTTP/signaling routes. The browser bundle is served by the companion.
+changing its HTTP/signaling routes. Run `npm run build` from the parent package: it builds the companion/browser first
+and embeds the browser bundle in the BB server artifact. BB serves this bundle
+even while the companion is stopped. `Use text` connects directly to the same
+authenticated director without opening a room or enabling microphone/audio.
+Text controls preserve the conversation owner and exact displayed-question binding.
 
 ## What is delegated to LiveKit
 
@@ -66,7 +70,9 @@ semantic interruption detection and enhanced cloud noise filters are not enabled
 the external BB director retains generated-text history rather than an exact heard
 transcript. The integrated companion polls for updates while idle, revalidates
 questions and keeps quiet-mode updates pending. It accepts typed input through
-the same director, displays delegated work, and exposes separate speech/work stops.
+the same director, displays delegated work, and exposes separate speech/work stops. Stop delegated work preempts briefing
+preparation and playback; stale control completions cannot replace its result.
+A failed opening briefing no longer prevents subsequent update polling.
 
 The page displays generated text and the current bound question. Displayed text
 and server playout do not prove physical audibility. Browser diagnostics contain

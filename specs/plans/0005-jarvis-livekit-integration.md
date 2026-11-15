@@ -37,3 +37,18 @@ Remaining qualification: extended Android/car conversations, route changes and
 cellular recovery/background behavior. Initial briefing still waits for complete
 model text, and companion provisioning remains operator-managed. These limits
 are preserved as work; this candidate does not close the full Jarvis roadmap.
+
+
+Follow-up to the full gap analysis: Stop now preempts briefing preparation and
+playback, with stale presentation fenced. Use text connects directly to the
+existing authenticated director; its browser bundle loads from BB while the
+companion is stopped. Candidate component coverage is now 57 + 6 tests. Actual
+browser checks include both stop phases, competing-client ownership, text/model
+reply during a real companion outage, and independently observed termination of
+one bounded foreground worker process. See [control recovery evidence](../research/jarvis-control-recovery-2026-11-15.md).
+
+These repairs do not close A/B: full real spoken approval/denial, concurrent-worker,
+restart/uncertain-effect, acoustic/device and useful-work acceptance remain open.
+The [54-family audit](../research/jarvis-scenario-matrix-2026-11-15.md) remains the
+baseline; the follow-up evidence closes only its specifically exercised defects.
+Latency, memory, sourced recall and external initiative are not resolved here.
