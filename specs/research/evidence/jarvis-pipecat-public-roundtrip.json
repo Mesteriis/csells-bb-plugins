@@ -1,0 +1,64 @@
+{
+  "at": "2026-11-15T03:37:51.313Z",
+  "method": "Actual staged Pipecat via public TCP3478 TURN address with no private SSH media tunnel. Browser on lab LAN; independent portchecker.io probe confirmed off-LAN TCP reachability. Known speech fixture -> real STT/Jarvis/Alfred with spoken interruption. Not physical phone/car validation.",
+  "rms": 0.13024438700053506,
+  "tailMs": 261.69999998807907,
+  "events": [
+    {
+      "phase": "ready",
+      "at": 1599.6000000238419,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 2195.5,
+      "chars": 0
+    },
+    {
+      "phase": "response",
+      "at": 11407.600000023842,
+      "chars": 1246
+    },
+    {
+      "phase": "speaking",
+      "at": 11543.900000035763,
+      "chars": 0
+    },
+    {
+      "phase": "interrupted",
+      "at": 17689.100000023842,
+      "chars": 0
+    },
+    {
+      "phase": "listening",
+      "at": 17689.200000047684,
+      "chars": 0
+    },
+    {
+      "phase": "transcribing",
+      "at": 18859.5,
+      "chars": 0
+    },
+    {
+      "phase": "transcript",
+      "at": 19825.5,
+      "chars": 22
+    },
+    {
+      "phase": "response",
+      "at": 20148.200000047684,
+      "chars": 64
+    },
+    {
+      "phase": "speaking",
+      "at": 20244.900000035763,
+      "chars": 0
+    },
+    {
+      "phase": "generated",
+      "at": 22893.80000001192,
+      "chars": 0
+    }
+  ],
+  "errors": []
+}
