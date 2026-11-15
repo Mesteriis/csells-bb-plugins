@@ -62,3 +62,9 @@ See the [three-engine evidence and remaining limits](../research/jarvis-self-hos
 Desktop PCM, transcription and interruption results qualify only their stated
 cases. Human voice preference, Android/car acceptance and the original latency
 gates remain open; no engine is selected for production by this spike.
+
+Startup acceptance correction: Chris requires first spoken audio less than one
+second after Start. The new real-browser gate fails at 13.1 s (CosyVoice) and 14.4 s
+(Kokoro), despite warm models. Full-briefing buffering, media startup and batch
+TTS all remain on the critical path. See the [API/startup audit](../research/jarvis-streaming-api-audit-2026-11-15.md).
+Do not mark conversation acceptance complete from quality/interruption passes.

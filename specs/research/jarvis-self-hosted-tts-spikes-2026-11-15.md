@@ -1,5 +1,10 @@
 # Jarvis self-hosted TTS comparison — 2026-11-15
 
+**Acceptance correction:** the subsequent [startup/API audit](jarvis-streaming-api-audit-2026-11-15.md)
+measured 13.1–14.4 seconds to first speech. Neither enabled engine passes Chris's
+under-one-second Start requirement. The quality/interruption results below do not
+establish an acceptable conversational implementation.
+
 This is a working staging comparison of Kokoro, Qwen3-TTS and CosyVoice3 through
 Jarvis's real LiveKit/BB path. It is not production acceptance or a claim that
 Android/car audio quality is fixed. No hosted TTS credentials are involved.

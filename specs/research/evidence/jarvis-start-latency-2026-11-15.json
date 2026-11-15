@@ -1,0 +1,103 @@
+{
+  "targetMs": 1000,
+  "interpretation": "Start click to first decoded non-silent speech, not HTTP headers, displayed text, or a canned sound",
+  "trials": [
+    {
+      "at": "2026-11-15T23:12:34.366Z",
+      "targetMs": 1000,
+      "voice": "cosyvoice-alfred",
+      "method": "Trusted Start click to first decoded non-silent WebRTC sample; actual dynamic BB briefing; synthetic silent microphone",
+      "errors": [],
+      "clickAt": 686.5999999642372,
+      "trustedClick": true,
+      "firstAudioAt": 13769.899999976158,
+      "error": "",
+      "clickToAudioMs": 13083,
+      "pass": false,
+      "failure": "AssertionError [ERR_ASSERTION]: Start-to-first-decoded-audio must be under 1000 ms",
+      "milestones": [
+        {
+          "afterClickMs": 466,
+          "event": "speech-profile"
+        },
+        {
+          "afterClickMs": 469,
+          "event": "connection"
+        },
+        {
+          "afterClickMs": 1131,
+          "event": "connection"
+        },
+        {
+          "afterClickMs": 1446,
+          "event": "microphone"
+        },
+        {
+          "afterClickMs": 1506,
+          "event": "audio-subscribed"
+        },
+        {
+          "afterClickMs": 1800,
+          "event": "briefing"
+        },
+        {
+          "afterClickMs": 11603,
+          "event": "response"
+        },
+        {
+          "afterClickMs": 12970,
+          "event": "synthesis-metrics"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-15T23:13:19.668Z",
+      "targetMs": 1000,
+      "voice": "kokoro-george",
+      "method": "Trusted Start click to first decoded non-silent WebRTC sample; actual dynamic BB briefing; synthetic silent microphone",
+      "errors": [],
+      "clickAt": 978.2999999523163,
+      "trustedClick": true,
+      "firstAudioAt": 15381.199999988079,
+      "error": "",
+      "clickToAudioMs": 14403,
+      "pass": false,
+      "failure": "AssertionError [ERR_ASSERTION]: Start-to-first-decoded-audio must be under 1000 ms",
+      "milestones": [
+        {
+          "afterClickMs": 387,
+          "event": "speech-profile"
+        },
+        {
+          "afterClickMs": 388,
+          "event": "connection"
+        },
+        {
+          "afterClickMs": 924,
+          "event": "connection"
+        },
+        {
+          "afterClickMs": 1227,
+          "event": "microphone"
+        },
+        {
+          "afterClickMs": 1368,
+          "event": "audio-subscribed"
+        },
+        {
+          "afterClickMs": 1566,
+          "event": "briefing"
+        },
+        {
+          "afterClickMs": 11330,
+          "event": "response"
+        },
+        {
+          "afterClickMs": 14058,
+          "event": "synthesis-metrics"
+        }
+      ]
+    }
+  ],
+  "scope": "One warm-model real-browser trial per enabled engine; synthetic silent mic; no physical speaker/Bluetooth measurement; no controlled Pocket trial in this run"
+}
