@@ -89,3 +89,12 @@ GET `/health` on port 4846. End or panel closure releases the room and lease;
 heartbeat loss expires abandoned clients within 90 seconds. A concurrent start
 returns a visible conflict rather than silently taking over another conversation.
 Integration results are in `specs/research/jarvis-livekit-integration.md`.
+
+
+Jarvis explicitly requests Alfred at normal speed (1.0), overriding the shared
+service's faster default. Diagnostics include upstream browser microphone counters
+and server input RMS/peak/sample counts without retaining microphone recordings.
+Speech-handle interruption eligibility is recorded separately from detected speech.
+See `specs/research/jarvis-voice-quality-and-interruption-2026-11-15.md` for the
+known-passage intelligibility check and repeated-interruption evidence. Desktop
+passes do not close the reported Android/car interruption failure.

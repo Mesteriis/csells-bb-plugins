@@ -3,8 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { randomUUID, randomBytes, timingSafeEqual, createHmac } from 'node:crypto';
 import { initializeLogger, voice } from '@livekit/agents';
 import { VAD } from '@livekit/agents-plugin-silero';
-import { Room, RoomEvent } from '@livekit/rtc-node';
+import { AudioStream, TrackSource, type RemoteAudioTrack, Room, RoomEvent } from '@livekit/rtc-node';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { InputMeter } from './input-meter.js';
 import { ControlLane } from './control-lane.js';
 import { BBSTT, BBDirector, JarvisAgent, Relay } from './relay.js';
 initializeLogger({pretty:false, level:'warn'});
@@ -16,7 +17,7 @@ const vad = await VAD.load();
 const sessions = new Map<string, Connection>();
 function equal(a:string,b:string) { const x=Buffer.from(a),y=Buffer.from(b); return x.length===y.length && timingSafeEqual(x,y); }
 function log(session:string,phase:string,detail:Record<string,unknown>={}) {
-  const safe = Object.fromEntries(Object.entries(detail).filter(([k])=>['durationMs','audioMs','state','interrupted','reason','kind','bytesReceived','packetsLost','jitter','audioLevel','totalAudioEnergy','totalSamplesDuration','playbackAllowed','micEnabled'].includes(k)));
+  const safe = Object.fromEntries(Object.entries(detail).filter(([k])=>['durationMs','audioMs','state','interrupted','reason','kind','bytesReceived','packetsLost','jitter','audioLevel','totalAudioEnergy','totalSamplesDuration','playbackAllowed','micEnabled','inputSamples','inputRms','inputPeak','inputBytesSent','inputPacketsSent','inputAudioLevel','inputTotalAudioEnergy','inputTotalSamplesDuration','inputMuted','inputEnded','allowInterruptions'].includes(k)));
   console.log(JSON.stringify({at:new Date().toISOString(),session,phase,...safe}));
 }
 async function jwt(room:string,identity:string,agent=false) {
@@ -31,6 +32,20 @@ class Connection {
   agent = new JarvisAgent(this.relay);
   session = new voice.AgentSession({vad,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
   ready!: Promise<void>; closed=false; started=false; touched=Date.now(); heartbeat?:NodeJS.Timeout; watcher?:NodeJS.Timeout; polling=false; backgroundEpoch=0; controls=new ControlLane();
+  inputReader?:ReturnType<AudioStream['getReader']>; inputMeterGeneration=0;
+  async meterInput(track:RemoteAudioTrack){
+    const generation=++this.inputMeterGeneration;
+    await this.inputReader?.cancel();
+    if(this.closed||generation!==this.inputMeterGeneration)return;
+    const reader=new AudioStream(track,{sampleRate:16000,numChannels:1}).getReader();
+    this.inputReader=reader;const meter=new InputMeter();let last=Date.now();
+    try {
+      while(!this.closed){const item=await reader.read();if(item.done)break;meter.add(item.value.data);
+        if(Date.now()-last>=1000){this.event('input-audio',{...meter.take(),state:this.session.agentState});last=Date.now();}
+      }
+    }catch{if(!this.closed)this.event('input-audio-error',{kind:'capture-meter'});}
+    finally{await reader.cancel();reader.releaseLock();if(this.inputReader===reader)this.inputReader=undefined;this.event('input-audio-ended');}
+  }
   event(phase:string,detail:Record<string,unknown>={}) {
     log(this.id,phase,detail);
     if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
@@ -39,8 +54,13 @@ class Connection {
     await this.relay.command('start');
     await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});
     await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});
+    this.room.on(RoomEvent.TrackSubscribed,(track,publication,participant)=>{
+      if(participant.identity===this.identity&&publication.source===TrackSource.SOURCE_MICROPHONE)void this.meterInput(track as RemoteAudioTrack).catch(()=>this.event('input-audio-error',{kind:'capture-meter-start'}));
+    });
+    this.room.on(RoomEvent.TrackMuted,(publication,participant)=>{if(participant.identity===this.identity&&publication.source===TrackSource.SOURCE_MICROPHONE)this.event('microphone-track',{inputMuted:true});});
+    this.room.on(RoomEvent.TrackUnmuted,(publication,participant)=>{if(participant.identity===this.identity&&publication.source===TrackSource.SOURCE_MICROPHONE)this.event('microphone-track',{inputMuted:false});});
     this.room.on(RoomEvent.ParticipantDisconnected, p=>{if(p.identity===this.identity) void this.close();});
-    this.session.on(voice.AgentSessionEventTypes.SpeechCreated,e=>{this.relay.activeSpeech=e.speechHandle;});
+    this.session.on(voice.AgentSessionEventTypes.SpeechCreated,e=>{this.relay.activeSpeech=e.speechHandle;this.event('speech-created',{allowInterruptions:e.speechHandle.allowInterruptions});});
     this.session.on(voice.AgentSessionEventTypes.AgentStateChanged,e=>this.event('agent-state',{state:e.newState}));
     this.session.on(voice.AgentSessionEventTypes.UserStateChanged,e=>{
       this.event('user-state',{state:e.newState});
@@ -105,7 +125,7 @@ class Connection {
     if(this.closed) return; this.closed=true; this.controls.close();
     clearInterval(this.heartbeat); clearInterval(this.watcher); sessions.delete(this.id);
     this.event('closing');
-    await Promise.allSettled([this.session.close(),this.relay.command('close')]);
+    await Promise.allSettled([this.inputReader?.cancel(),this.session.close(),this.relay.command('close')]);
     await this.room.disconnect().catch(()=>{});
     await rooms.deleteRoom(this.name).catch(()=>{});
     log(this.id,'closed');
@@ -149,7 +169,7 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/telemetry'){
       const detail=body.detail&&typeof body.detail==='object'?body.detail as Record<string,unknown>:{};
       const safe=Object.fromEntries(Object.entries(detail).filter(([,v])=>typeof v==='boolean'||(typeof v==='number'&&Number.isFinite(v))));
-      log(c.id,'browser-media',safe);send(200,{ok:true});return;
+      log(c.id,body.input===true?'browser-microphone':'browser-media',safe);send(200,{ok:true});return;
     }
     if(req.url==='/heartbeat'){send(200,{ok:true});return;}
     if(req.url==='/close'){await c.close();send(200,{ok:true});return;}

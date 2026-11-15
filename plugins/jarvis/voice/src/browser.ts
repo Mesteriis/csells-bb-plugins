@@ -100,6 +100,16 @@ async function start(withMicrophone=true){
     for(const id of activeControls)button(id).disabled=false;status('Connected');
     heartbeat=setInterval(()=>{if(credentials){
       void request('heartbeat',credentials).catch(fail);void refreshTasks();
+      for(const pub of room?.localParticipant.audioTrackPublications.values()??[]){
+        void pub.track?.getRTCStatsReport().then(stats=>{
+          const detail:Record<string,number|boolean>={micEnabled:room?.localParticipant.isMicrophoneEnabled??false,inputMuted:pub.track?.mediaStreamTrack.muted??false,inputEnded:pub.track?.mediaStreamTrack.readyState==='ended'};
+          stats?.forEach(report=>{
+            if(report.type==='outbound-rtp'&&report.kind==='audio')Object.assign(detail,{inputBytesSent:report.bytesSent,inputPacketsSent:report.packetsSent});
+            if(report.type==='media-source'&&report.kind==='audio')Object.assign(detail,{inputAudioLevel:report.audioLevel,inputTotalAudioEnergy:report.totalAudioEnergy,inputTotalSamplesDuration:report.totalSamplesDuration});
+          });
+          record('microphone-stats',detail);if(credentials)void request('telemetry',{...credentials,input:true,detail}).catch(()=>{});
+        }).catch(()=>record('microphone-stats-unavailable'));
+      }
       for(const participant of room?.remoteParticipants.values()??[]) for(const pub of participant.audioTrackPublications.values()) {
         void pub.track?.getRTCStatsReport().then(stats=>{stats?.forEach(report=>{if(report.type==='inbound-rtp'&&report.kind==='audio'){
           const detail={bytesReceived:report.bytesReceived,packetsLost:report.packetsLost,jitter:report.jitter,audioLevel:report.audioLevel,totalAudioEnergy:report.totalAudioEnergy,totalSamplesDuration:report.totalSamplesDuration,playbackAllowed:room?.canPlaybackAudio,micEnabled:room?.localParticipant.isMicrophoneEnabled};
