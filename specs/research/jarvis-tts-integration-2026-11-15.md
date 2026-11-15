@@ -1,5 +1,7 @@
 # Hosted TTS integration: implementation and credential gate
 
+**Superseded direction:** Chris clarified that the task requires open-source, self-hosted speech engines. The hosted-provider activation steps and credential gate below are historical, not current next steps. The credential request is closed; no provider was activated. See [the corrected scope](jarvis-self-hosted-tts-scope-2026-11-15.md).
+
 Status on 2026-11-15: Cartesia/Inworld integration implemented and built in the
 disposable staging VM. **Neither hosted provider has synthesized speech in this
 candidate yet.** Dedicated API keys are missing. The secure BB request is pending;

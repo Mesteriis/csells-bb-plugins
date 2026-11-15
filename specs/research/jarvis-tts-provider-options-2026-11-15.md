@@ -1,5 +1,7 @@
 # Replacing Pocket TTS for clear, brisk Jarvis speech
 
+**Scope correction:** Chris clarified that this evaluation is for open-source, self-hosted engines. The hosted-provider recommendation below is superseded and must not drive implementation. No commercial-provider keys are required. See [the corrected scope](jarvis-self-hosted-tts-scope-2026-11-15.md).
+
 Research date: 2026-11-15. Scope: provider selection and integration design; no provider switch, account creation, paid synthesis, or deployment performed. Inspected Jarvis at `f23c3268c05d9d622e2ac3f2a5f6d0fb29e7960f`, official provider documentation, and published LiveKit Node plugin packages at version 1.10.0.
 
 Subsequent authorized implementation: [integration and credential-gate report](jarvis-tts-integration-2026-11-15.md). The research below records the selection rationale; hosted synthesis remains unverified pending API keys.
