@@ -11,4 +11,10 @@ export const livekitPage = `<!doctype html><html lang="en"><meta charset="utf-8"
 <form id="text-form"><input id="draft" aria-label="Message to Jarvis" placeholder="Talk or type to Jarvis" maxlength="8000"><button id="send" disabled>Send</button></form>
 <details><summary>Delegated work</summary><div id="tasks">Start Jarvis to see delegated work.</div></details>
 <details><summary>Diagnostics</summary><p><small>Text may include words you interrupted before hearing. Closing this panel ends the conversation.</small></p><button id="diagnostics">Download diagnostics</button></details>
+<details><summary>Grade this voice</summary><p>After a conversation, rate what you actually heard. Compare the same pace for each voice.</p><div class="speech-settings">
+<label>Clarity<select id="grade-clarity"><option value="">Not rated</option><option>5 · Clear throughout</option><option>4 · Mostly clear</option><option>3 · Some fuzz or mumbling</option><option>2 · Hard to follow</option><option>1 · Unusable</option></select></label>
+<label>Jarvis voice fit<select id="grade-character"><option value="">Not rated</option><option>5 · The voice I want</option><option>4 · Close</option><option>3 · Acceptable</option><option>2 · Wrong character</option><option>1 · Unusable</option></select></label>
+<label>Pace<select id="grade-pace"><option value="">Not rated</option><option>Right pace</option><option>Too slow</option><option>Too rushed</option></select></label>
+<label>Interruptions<select id="grade-interruptions"><option value="">Not tested</option><option>Stopped every time</option><option>Worked only the first time</option><option>Sometimes ignored me</option><option>Stopped when I was silent</option></select></label></div>
+<label>Listening setup and notes<input id="grade-notes" maxlength="2000" placeholder="For example: Android, car Bluetooth; later replies were clear"></label><button id="grade-save">Download voice grade</button><p id="grade-status" role="status"></p></details>
 <div id="media"></div><script src="livekit-browser.js" onerror="document.getElementById('error').textContent='Jarvis could not load. Reload this panel to retry.'"></script></html>`;

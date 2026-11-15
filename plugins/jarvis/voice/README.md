@@ -2,7 +2,9 @@
 
 A self-hosted TypeScript companion for the Jarvis BB plugin. It uses
 LiveKit Agents 1.10.0, rtc-node 1.2.2, browser client 2.24.1, and LiveKit Server
-1.13.11. No Python voice worker or LiveKit Cloud credential is required.
+1.13.11. The plugin and LiveKit companion stay in TypeScript. Kokoro uses Node; Qwen and
+CosyVoice run upstream Python inference in a separate disposable VM. No LiveKit
+Cloud credential or hosted TTS key is required.
 
 The authenticated BB page is `/api/v1/plugins/jarvis/http/livekit`. Start acquires
 the existing Jarvis conversation lease, joins a private two-participant LiveKit
@@ -99,37 +101,47 @@ See `specs/research/jarvis-voice-quality-and-interruption-2026-11-15.md` for the
 known-passage intelligibility check and repeated-interruption evidence. Desktop
 passes do not close the reported Android/car interruption failure.
 
-## Hosted speech comparison
+## Self-hosted speech comparison
 
-The companion supports the official Cartesia and Inworld Node plugins, pinned to
-1.10.0. Add this `speech` section to the private companion JSON configuration:
+The companion accepts server-owned local engine profiles in `speech` (see
+`deploy/speech.example.json`). The browser chooses a voice ID and pace; it cannot
+provide endpoints, credentials or model names. Endpoints must be loopback HTTP,
+including an authenticated task tunnel to a dedicated inference VM. No hosted
+TTS provider key is required. An unready engine stays disabled with no fallback.
 
-```json
-{
-  "speech": {
-    "defaultVoice": "cartesia",
-    "voices": [
-      {"id":"cartesia","label":"Cartesia · Daniel","provider":"cartesia","voice":"47c38ca4-5f35-497b-b1a3-415245fb35e1","model":"sonic-3.6-2026-08-27"},
-      {"id":"inworld","label":"Inworld · Dennis","provider":"inworld","voice":"Dennis","model":"inworld-tts-2"}
-    ]
-  }
-}
-```
+`LocalTTS` implements LiveKit's TTS boundary. LiveKit supplies sentence streaming,
+playout, interruption and false-interruption recovery. The endpoint returns
+length-prefixed PCM16LE, mono 24 kHz, with a zero-length success terminator.
+Truncated streams fail; client cancellation aborts the HTTP request. This does
+not imply the engine cancels its own computation: measure that separately.
 
-Supply candidate-only `CARTESIA_API_KEY` and `INWORLD_API_KEY` through a protected
-systemd `EnvironmentFile` outside the source tree. The Inworld value is its Base64
-API credential. Do not put either key in the browser, JSON catalog, or diagnostics.
-Profiles without a key are visibly unavailable; failed synthesis never falls back
-to another voice. Restart the companion after updating credentials/configuration.
+Choose Voice and Pace before Start Jarvis. Brisk is 1.25 and Faster is 1.4. The
+selection applies to replies, briefings and agent questions. Kokoro applies
+native synthesis speed; other engines must prove their speed behavior before
+being enabled. A supplied speed field is not evidence that it took effect.
 
-Choose Voice and Pace before Start Jarvis. Brisk requests 1.25; Faster requests
-1.4. These are provider synthesis controls, not changes to browser playback rate.
-Actual speaking pace depends on the voice and must be measured. The selection is
-fixed for the conversation and applies to replies, briefings and agent questions.
-LiveKit owns cancellation, false-interruption recovery and transport. End closes
-the provider's pooled connections as well as the session and room. Diagnostics
-include provider/model/voice/pace and SDK synthesis timing, duration and counts.
+The self-hosted engine spike is in `specs/research/spikes/local-tts`. Kokoro uses the
+upstream Node/ONNX implementation with pinned full-precision weights, two stock
+British voices, bounded phrase lengths and one active inference worker. It does
+not clone Alfred. Interrupted queued work is discarded; an active phrase drains
+and its obsolete audio is dropped. Worker deadlines bound unrecoverable hangs.
 
-Without a `speech` section, the explicitly labeled local Alfred installation
-remains available at the Brisk preset (1.25). It is a compatibility path, not an
-automatic fallback or the quality replacement. The shared voice service is unchanged.
+Without a `speech` section the explicit Pocket/Alfred baseline remains available
+at 1.25. It is not an automatic fallback. The shared voice installation is unchanged.
+
+Qwen and CosyVoice reuse the same private Alfred reference. The broker keeps one
+GPU engine loaded at a time and prepares it before opening a conversation. Qwen
+uses the official batch decoder plus FFmpeg `atempo`; CosyVoice uses its native
+batch speed control. Both return complete phrases, not incremental decoder PCM.
+LiveKit still controls interruptible playback. A canceled phrase may keep computing
+until it finishes; its audio is discarded. The worker watchdog bounds hangs.
+
+The optional **Grade this voice** panel saves clarity, character, pace and
+interruption ratings with diagnostics. Automated word coverage and clipping checks
+are separate from subjective voice quality and physical Android/Bluetooth acceptance.
+
+The comparison config keeps Qwen visible but unavailable after its measured
+next-reply timeout following interruption. Native/browser recordings remain in
+the research evidence. Re-enable only after qualifying a faster serving path;
+raising a timeout does not satisfy conversational responsiveness. Kokoro and
+CosyVoice remain enabled for user listening review.

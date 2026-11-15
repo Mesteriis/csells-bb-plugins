@@ -147,7 +147,7 @@ export default async function plugin(bb: BbPluginApi) {
         const raw=await context.req.text();
         if(raw.length>8192) return context.text("Request too large",413);
         try {
-          const r=await fetch(`http://127.0.0.1:4846/${action}`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${config.relayToken}`},body:raw,signal:AbortSignal.timeout(30000)});
+          const r=await fetch(`http://127.0.0.1:4846/${action}`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${config.relayToken}`},body:raw,signal:AbortSignal.timeout(action==="session"?60000:30000)});
           return new Response(r.body,{status:r.status,headers:{"content-type":"application/json","cache-control":"no-store"}});
         } catch { return new Response(JSON.stringify({error:"Voice service unavailable. Use text to continue."}),{status:503,headers:{"content-type":"application/json"}}); }
       }, {auth:"local"});

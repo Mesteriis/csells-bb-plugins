@@ -25,10 +25,12 @@ try{
  for(const id of ['first','second','third']){
   await wait(()=>document.querySelector('#state').textContent==='Jarvis is speaking');await page.waitForTimeout(4500);
   assert.equal(await frame.locator('#state').textContent(),'Jarvis is speaking','Need to inject while ongoing speech plays');
+  await wait(()=>window.levels?.slice(-5).length===5&&window.levels.slice(-5).every(x=>x.rms>.005),undefined,20000);
+  assert.equal(await frame.locator('#state').textContent(),'Jarvis is speaking','Require decoded speech immediately before injection');
   const prior=await frame.evaluate(()=>window.events.filter(e=>e.phase==='response').at(-1));
   const bytes=fs.readFileSync(path.join(out,id+'.wav')).toString('base64');
   const start=await frame.evaluate(async b=>{const {c,d}=window.capture,s=c.createBufferSource();s.buffer=await c.decodeAudioData(Uint8Array.from(atob(b),x=>x.charCodeAt(0)).buffer);s.connect(d);s.start();return performance.now();},bytes);
-  const turn={id,start,prior:prior?.utteranceId};result.turns.push(turn);
+  const turn={id,start,prior:prior?.utteranceId,audibleBeforeInjection:true};result.turns.push(turn);
   await wait(t=>window.events.some(e=>e.phase==='user-state'&&e.state==='speaking'&&e.monotonicMs>t),start,15000);
   await wait(t=>window.events.some(e=>e.phase==='agent-state'&&e.state==='listening'&&e.monotonicMs>t),start,15000);
   const signal=await frame.evaluate(t=>window.events.find(e=>e.phase==='agent-state'&&e.state==='listening'&&e.monotonicMs>t),start);
@@ -40,7 +42,9 @@ try{
   await wait(t=>window.events.some(e=>e.phase==='transcribed'&&e.monotonicMs>t),start,30000);
   await wait(t=>window.events.some(e=>e.phase==='response'&&e.monotonicMs>t),start,60000);
   turn.transcript=await frame.locator('#heard').textContent();turn.answer=await frame.locator('#answer').textContent();
-  assert(new RegExp(id==='first'?'lighthouse':id==='second'?'mountain':'forest','i').test(turn.answer));
+  assert(new RegExp(id==='first'?'lighthouse':id==='second'?'mountain':'forest','i').test(turn.transcript),'STT must preserve the directed topic');
+  const reply=await frame.evaluate(t=>window.events.find(e=>e.phase==='response'&&e.monotonicMs>t),start);
+  assert(reply.kind==='reply'&&reply.utteranceId!==prior?.utteranceId&&turn.answer.trim().length>80,'A new substantial reply must follow the interruption');
   turn.within250msTarget=turn.onsetToQuietMs<=250;turn.pass=true;console.log(JSON.stringify({id,pass:true,onsetToQuietMs:turn.onsetToQuietMs}));
  }
  result.interruptionTargetMet=result.turns.every(t=>t.within250msTarget);

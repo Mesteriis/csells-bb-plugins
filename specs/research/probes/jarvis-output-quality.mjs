@@ -15,7 +15,7 @@ try{
  if(process.env.JARVIS_TTS_VOICE)await frame.locator('#voice').selectOption(process.env.JARVIS_TTS_VOICE);
  if(process.env.JARVIS_TTS_SPEED)await frame.locator('#pace').selectOption(process.env.JARVIS_TTS_SPEED);
  result.speech={voice:await frame.locator('#voice').inputValue(),speed:Number(await frame.locator('#pace').inputValue())};
- await frame.locator('#start').click();await wait(()=>document.querySelector('#state').textContent==='Jarvis is speaking');
+ await frame.locator('#start').click();await wait(()=>document.querySelector('#state').textContent==='Jarvis is speaking'||document.querySelector('#error').textContent);assert.equal(await frame.locator('#error').textContent(),'','Voice startup failed');await wait(()=>document.querySelector('#media audio')?.srcObject instanceof MediaStream);await page.waitForTimeout(500);
  await frame.locator('#stop').click();await wait(()=>window.events.some(e=>e.phase==='playout-ended'));await page.waitForTimeout(1000);
  if(process.env.JARVIS_MIC_OFF==='1')await frame.locator('#mic').click();
  result.microphoneOff=process.env.JARVIS_MIC_OFF==='1';

@@ -59,6 +59,7 @@ class Connection {
     if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
   }
   async open() {
+    await speechCatalog.prepare(this.speechChoice);
     await this.relay.command('start');
     await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});
     await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});

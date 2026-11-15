@@ -52,3 +52,13 @@ restart/uncertain-effect, acoustic/device and useful-work acceptance remain open
 The [54-family audit](../research/jarvis-scenario-matrix-2026-11-15.md) remains the
 baseline; the follow-up evidence closes only its specifically exercised defects.
 Latency, memory, sourced recall and external initiative are not resolved here.
+
+Self-hosted speech follow-up: Kokoro, Qwen3-TTS and CosyVoice3 now have executable
+inference spikes connected to this same LiveKit companion, with server-owned
+voice/pace selection and an optional listening-grade export. Hosted-provider
+activation was removed. The plugin stays TypeScript; Qwen/CosyVoice Python
+inference is isolated in disposable VM222. Component coverage is now 57 + 16.
+See the [three-engine evidence and remaining limits](../research/jarvis-self-hosted-tts-spikes-2026-11-15.md).
+Desktop PCM, transcription and interruption results qualify only their stated
+cases. Human voice preference, Android/car acceptance and the original latency
+gates remain open; no engine is selected for production by this spike.

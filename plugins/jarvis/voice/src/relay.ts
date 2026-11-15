@@ -165,8 +165,8 @@ export class JarvisAgent extends voice.Agent {
     await speech.waitForPlayout();
   }
 }
-// Retained only for explicitly configured legacy installations. Hosted providers
-// use the SDK's default TTS node for both model replies and proactive speech.
+// Explicit Pocket baseline. Self-hosted candidates use the SDK default TTS node
+// for both model replies and proactive speech.
 export class AlfredAgent extends JarvisAgent {
   async speakState(state:State) {
     this.relay.present(state);

@@ -46,3 +46,8 @@ normal interfaces to lab services. Retain the 250ms interruption target and the
 unresolved Android/car behavior; desktop checks do not close either gap.
 
 No new engine was installed or auditioned as part of this scope correction.
+
+Subsequent implementation: [the three-engine spike report](jarvis-self-hosted-tts-spikes-2026-11-15.md)
+records actual installations, source pins, GPU qualification, browser evidence,
+failures and remaining acceptance. Kokoro was deployed in the disposable inference
+VM; this work did not activate or modify any engine in the shared voice service.

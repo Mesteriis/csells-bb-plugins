@@ -1,0 +1,9 @@
+node_modules/
+model-cache/
+models/
+samples/
+*.log
+__pycache__/
+*-env/
+alfred-reference.*
+reference-transcript.txt

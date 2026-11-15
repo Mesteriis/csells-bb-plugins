@@ -1,0 +1,505 @@
+{
+  "at": "2026-11-15T22:56:40.292304+00:00",
+  "hardware": {
+    "host": "Lynx",
+    "vmid": 222,
+    "vcpus": 4,
+    "memoryGiB": 10,
+    "gpu": "RTX 1000 Ada Laptop 6GiB",
+    "driver": "550.163.01",
+    "kokoroCpuQuotaPercent": 200,
+    "gpuWorkerCpuQuotaPercent": 350
+  },
+  "sourceFilesMatched": 75,
+  "componentTestsPassed": 73,
+  "reference": "Private authorized 4.95-second Alfred excerpt for Qwen/CosyVoice; Kokoro stock British voices",
+  "method": "Actual browser/LiveKit/BB/STT/TTS, synthetic microphone; no physical Android/Bluetooth qualification",
+  "nativeSamples": [
+    {
+      "id": "bm_george-1.25-ack",
+      "model": "kokoro-fp32",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 3.3,
+      "firstMs": 3811.116007,
+      "elapsedMs": 3817.278952,
+      "rtf": 1.1567511975757576,
+      "artifact": "samples-kokoro-final/bm_george-1.25-ack.wav",
+      "audioSha256": "ac1628c62bb5a499a6d1cc86851b760a646de98d80eea0989511268ee35b818e"
+    },
+    {
+      "id": "bm_george-1.25-passage",
+      "model": "kokoro-fp32",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 15.95,
+      "firstMs": 10615.43527,
+      "elapsedMs": 12993.887966999999,
+      "rtf": 0.8146638223824452,
+      "artifact": "samples-kokoro-final/bm_george-1.25-passage.wav",
+      "audioSha256": "c9b5ac977f7c700068e6855b81a46c67a9842224a2160fa4c7dab23859c03809"
+    },
+    {
+      "id": "bm_george-1.25-technical",
+      "model": "kokoro-fp32",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 7.975,
+      "firstMs": 5004.451631,
+      "elapsedMs": 5006.868725999997,
+      "rtf": 0.6278205299059557,
+      "artifact": "samples-kokoro-final/bm_george-1.25-technical.wav",
+      "audioSha256": "7d3de1b5d5e6d4ab3168f00cb8350a2a395afc03c815ca73230e8de667a38d94"
+    },
+    {
+      "id": "bm_george-1.4-ack",
+      "model": "kokoro-fp32",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 2.6,
+      "firstMs": 1909.663991999998,
+      "elapsedMs": 1911.7690540000003,
+      "rtf": 0.7352957900000001,
+      "artifact": "samples-kokoro-final/bm_george-1.4-ack.wav",
+      "audioSha256": "3cac67fa068ddd346ab8919dcf155cdcc1839f68b7fad0bfc37b04e0fe4b2049"
+    },
+    {
+      "id": "bm_george-1.4-passage",
+      "model": "kokoro-fp32",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 12.8,
+      "firstMs": 7564.440186,
+      "elapsedMs": 10069.347519000003,
+      "rtf": 0.7866677749218751,
+      "artifact": "samples-kokoro-final/bm_george-1.4-passage.wav",
+      "audioSha256": "cbd2ae0a12f7f2c4806405752ab81430ec683dbee21f142872bab85c882463dc"
+    },
+    {
+      "id": "bm_george-1.4-technical",
+      "model": "kokoro-fp32",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 6.175,
+      "firstMs": 3486.45319,
+      "elapsedMs": 3487.076872000005,
+      "rtf": 0.5647088051821871,
+      "artifact": "samples-kokoro-final/bm_george-1.4-technical.wav",
+      "audioSha256": "3ce431ccb2790ddea53f9712a3a6e65d163a4a76cba3bcf682c958359db31cd3"
+    },
+    {
+      "id": "bm_fable-1.25-ack",
+      "model": "kokoro-fp32",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 3.225,
+      "firstMs": 2326.2831559999977,
+      "elapsedMs": 2329.211024000004,
+      "rtf": 0.7222359764341096,
+      "artifact": "samples-kokoro-final/bm_fable-1.25-ack.wav",
+      "audioSha256": "9211acce4e19cc137173b08cbb28be25862809e7c75e22bc8c85d173c25806f0"
+    },
+    {
+      "id": "bm_fable-1.25-passage",
+      "model": "kokoro-fp32",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 13.95,
+      "firstMs": 7271.666208000002,
+      "elapsedMs": 8984.920979000002,
+      "rtf": 0.6440803569175629,
+      "artifact": "samples-kokoro-final/bm_fable-1.25-passage.wav",
+      "audioSha256": "9ecf2c48df832cf46ac14a97de11614cf01b011218a72dea8107e6c0715f4d05"
+    },
+    {
+      "id": "bm_fable-1.25-technical",
+      "model": "kokoro-fp32",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 7.25,
+      "firstMs": 3922.9787540000034,
+      "elapsedMs": 3923.9169919999986,
+      "rtf": 0.5412299299310344,
+      "artifact": "samples-kokoro-final/bm_fable-1.25-technical.wav",
+      "audioSha256": "dc1b59749a4f3d0ab83856aeeda0d0a636902a0cc925debbc8c60519dd98978c"
+    },
+    {
+      "id": "bm_fable-1.4-ack",
+      "model": "kokoro-fp32",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 2.575,
+      "firstMs": 1353.7466550000026,
+      "elapsedMs": 1354.1365490000026,
+      "rtf": 0.5258782714563116,
+      "artifact": "samples-kokoro-final/bm_fable-1.4-ack.wav",
+      "audioSha256": "6bf35deedfe68d1339e8ff3846b841ef25b3a1cfd443d4f2c2b700aa1b604fb2"
+    },
+    {
+      "id": "bm_fable-1.4-passage",
+      "model": "kokoro-fp32",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 11.225,
+      "firstMs": 4496.399605999999,
+      "elapsedMs": 5728.170807999995,
+      "rtf": 0.5103047490423158,
+      "artifact": "samples-kokoro-final/bm_fable-1.4-passage.wav",
+      "audioSha256": "fbd940146c2b96d18b8a853448a835da9fd0655324d1b315ef57d7b8e9c7c880"
+    },
+    {
+      "id": "bm_fable-1.4-technical",
+      "model": "kokoro-fp32",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 5.675,
+      "firstMs": 3970.588466000001,
+      "elapsedMs": 3973.4368539999996,
+      "rtf": 0.7001650844052862,
+      "artifact": "samples-kokoro-final/bm_fable-1.4-technical.wav",
+      "audioSha256": "2d862851a4a701e3277b1c617954302237041f275854bca5b38777912efa5d92"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.25-ack",
+      "model": "qwen3-tts-0.6b",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 2.8991666666666664,
+      "firstMs": 2220.6172559999995,
+      "elapsedMs": 5134.161592000002,
+      "rtf": 1.7709094309859166,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.25-ack.wav",
+      "audioSha256": "6555452af3ed9c6a72d4f99101d5a8b9491f2fcd5bea8b1d844239aa2da0bb8b"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.25-passage",
+      "model": "qwen3-tts-0.6b",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 13.416083333333333,
+      "firstMs": 5624.938852000003,
+      "elapsedMs": 24486.854635,
+      "rtf": 1.825186533700223,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.25-passage.wav",
+      "audioSha256": "c555fb2ba48052d637e26ec38eeea43150d0e7e920ed1d16448b22fbbd9f6123"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.25-technical",
+      "model": "qwen3-tts-0.6b",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 8.638,
+      "firstMs": 2669.5232879999967,
+      "elapsedMs": 15340.567482999999,
+      "rtf": 1.7759397410280158,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.25-technical.wav",
+      "audioSha256": "195cd56effd36c55a987faea307775a0339affacdecb8e7e59c58e4822619f38"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.4-ack",
+      "model": "qwen3-tts-0.6b",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 2.1835833333333334,
+      "firstMs": 1696.7862130000067,
+      "elapsedMs": 3979.4209980000014,
+      "rtf": 1.8224268967675463,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.4-ack.wav",
+      "audioSha256": "bc75a1747e988813045bd6ce9abbbe80faf9cde521ef27dc7dd1712e17e396db"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.4-passage",
+      "model": "qwen3-tts-0.6b",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 12.486958333333334,
+      "firstMs": 4927.516601999996,
+      "elapsedMs": 22570.954126999997,
+      "rtf": 1.8075622200762793,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.4-passage.wav",
+      "audioSha256": "97b057132eb7f9d3c7a2c3fac050ade5a8cc280af49b875b1b5ff30d9dc1f639"
+    },
+    {
+      "id": "qwen3-tts-0.6b-alfred-1.4-technical",
+      "model": "qwen3-tts-0.6b",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 5.95525,
+      "firstMs": 3358.413975000003,
+      "elapsedMs": 13045.108718999996,
+      "rtf": 2.190522432979303,
+      "artifact": "samples-qwen-short/qwen3-tts-0.6b-alfred-1.4-technical.wav",
+      "audioSha256": "4bf1cde0d8e40c725f93d02ec235c5d1e2616d1d6efa946cdea98fa73ef595f4"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.25-ack",
+      "model": "cosyvoice3",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 3.34,
+      "firstMs": 1638.4598990000013,
+      "elapsedMs": 3359.7287109999997,
+      "rtf": 1.0059067997005988,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.25-ack.wav",
+      "audioSha256": "a4f0cf121212c664b95db81658e45e59f9cf8bb5382849360fe29218738bdc46"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.25-passage",
+      "model": "cosyvoice3",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 20.02,
+      "firstMs": 3136.983261000001,
+      "elapsedMs": 15249.049770999998,
+      "rtf": 0.7616907977522477,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.25-passage.wav",
+      "audioSha256": "816983c45c8041ac3047fddf3b64173fe891457ccbce72b34da4aa99bcc437fa"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.25-technical",
+      "model": "cosyvoice3",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "alfred",
+      "speed": 1.25,
+      "seconds": 8.4,
+      "firstMs": 1534.3744949999964,
+      "elapsedMs": 7337.791929999999,
+      "rtf": 0.8735466583333332,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.25-technical.wav",
+      "audioSha256": "98db598343517ff6340cbfea8a9f7d392789c0e085ee982ca85db3e60c40245c"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.4-ack",
+      "model": "cosyvoice3",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 2.7,
+      "firstMs": 1441.3179299999974,
+      "elapsedMs": 2909.796728000001,
+      "rtf": 1.0777024918518523,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.4-ack.wav",
+      "audioSha256": "e6addb13220ff1b462179eeb7032244ee270d096e536c5d47f43156a82e97710"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.4-passage",
+      "model": "cosyvoice3",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 17.06,
+      "firstMs": 3771.7679350000035,
+      "elapsedMs": 15397.369061000005,
+      "rtf": 0.9025421489449007,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.4-passage.wav",
+      "audioSha256": "612e0ce8aadfc9e5d62ef52f344fe98a793acd25c6a7c3b8096a1e4be5934839"
+    },
+    {
+      "id": "cosyvoice3-alfred-1.4-technical",
+      "model": "cosyvoice3",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "alfred",
+      "speed": 1.4,
+      "seconds": 7.02,
+      "firstMs": 1504.4475979999988,
+      "elapsedMs": 7108.036857999992,
+      "rtf": 1.012540862962962,
+      "artifact": "samples-cosy-short/cosyvoice3-alfred-1.4-technical.wav",
+      "audioSha256": "593aab2dc1bf75d801f3327af0b6a6efb26b341af1574d8da9a90af2bca82dce"
+    }
+  ],
+  "browser": [
+    {
+      "captureArtifact": "browser-kokoro-final",
+      "speech": {
+        "voice": "kokoro-george",
+        "speed": 1.4
+      },
+      "seconds": 14.376208333333333,
+      "expectedTextWordsPerMinute": 221.19879778221542,
+      "clippedFraction": 0,
+      "transcription": {
+        "expectedWords": 53,
+        "recognizedWords": 53,
+        "wordEdits": 0,
+        "wordErrorRate": 0.0
+      },
+      "audioSha256": "ec305cde0be94fd5d067441a37ce673b497767f88f6ec5ae5966743cfb311470",
+      "captureFailure": null,
+      "interruptions": {
+        "artifact": "browser-kokoro-final",
+        "failure": null,
+        "inputTelemetryVerified": true,
+        "targetMs": 250,
+        "targetMet": false,
+        "turns": [
+          {
+            "id": "first",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 353,
+            "onsetToQuietMs": 876,
+            "pass": true,
+            "within250msTarget": false
+          },
+          {
+            "id": "second",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 350,
+            "onsetToQuietMs": 421,
+            "pass": true,
+            "within250msTarget": false
+          },
+          {
+            "id": "third",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 316,
+            "onsetToQuietMs": 473,
+            "pass": true,
+            "within250msTarget": false
+          }
+        ]
+      }
+    },
+    {
+      "captureArtifact": "browser-fable",
+      "speech": {
+        "voice": "kokoro-fable",
+        "speed": 1.4
+      },
+      "seconds": 12.668104166666666,
+      "expectedTextWordsPerMinute": 251.02414364159333,
+      "clippedFraction": 0,
+      "transcription": {
+        "expectedWords": 53,
+        "recognizedWords": 53,
+        "wordEdits": 0,
+        "wordErrorRate": 0.0
+      },
+      "audioSha256": "47f09b0e8c2a7d2e14c6592ce8a4d2ccfadb6ff1be3fd7dbaa7b055fb07f1e10",
+      "captureFailure": null
+    },
+    {
+      "captureArtifact": "browser-cosy-short",
+      "speech": {
+        "voice": "cosyvoice-alfred",
+        "speed": 1.4
+      },
+      "seconds": 16.170625,
+      "expectedTextWordsPerMinute": 196.6528813821358,
+      "clippedFraction": 0,
+      "transcription": {
+        "expectedWords": 53,
+        "recognizedWords": 53,
+        "wordEdits": 0,
+        "wordErrorRate": 0.0
+      },
+      "audioSha256": "a6d1a3d51fcb2d4e86a3edc9e3fac30644ca518f972830c83bddffb816df6069",
+      "captureFailure": null,
+      "interruptions": {
+        "artifact": "browser-cosy-final",
+        "failure": null,
+        "inputTelemetryVerified": true,
+        "targetMs": 250,
+        "targetMet": false,
+        "turns": [
+          {
+            "id": "first",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 347,
+            "onsetToQuietMs": 655,
+            "pass": true,
+            "within250msTarget": false
+          },
+          {
+            "id": "second",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 327,
+            "onsetToQuietMs": 611,
+            "pass": true,
+            "within250msTarget": false
+          },
+          {
+            "id": "third",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 320,
+            "onsetToQuietMs": 611,
+            "pass": true,
+            "within250msTarget": false
+          }
+        ]
+      }
+    },
+    {
+      "captureArtifact": "browser-qwen",
+      "speech": {
+        "voice": "qwen-alfred",
+        "speed": 1.4
+      },
+      "seconds": 18.982875,
+      "expectedTextWordsPerMinute": 167.51940894095335,
+      "clippedFraction": 0,
+      "transcription": {
+        "expectedWords": 53,
+        "recognizedWords": 53,
+        "wordEdits": 1,
+        "wordErrorRate": 0.018867924528301886
+      },
+      "audioSha256": "a19027531ea30bd3387f63385021cf0aceefa96db45ca85c27d84545e8d6071d",
+      "captureFailure": null,
+      "interruptions": {
+        "artifact": "browser-qwen-final",
+        "failure": "TimeoutError: frame.waitForFunction: Timeout 60000ms exceeded.",
+        "inputTelemetryVerified": null,
+        "targetMs": 250,
+        "targetMet": null,
+        "turns": [
+          {
+            "id": "first",
+            "audibleBeforeInjection": true,
+            "onsetToListeningMs": 400,
+            "onsetToQuietMs": 535,
+            "pass": true,
+            "within250msTarget": false
+          }
+        ]
+      }
+    }
+  ],
+  "subjectiveGrade": "Pending user listening",
+  "promotion": "Not approved or performed",
+  "retainedFailures": [
+    "Low-memory CPU timeout and initial Kokoro memory limits",
+    "Qwen greedy-generation watchdog timeout",
+    "CosyVoice long-reference omission: native4words; browser7words",
+    "Initial interruption timing counted gaps: superseded by audible-before-injection gate",
+    "Literal forest-word assertion rejected a semantically valid forest story; fixed to check STT topic and new correlated reply",
+    "Final Qwen audible-interruption run: next response missed LiveKit10sec idle deadline; live profile disabled, no fallback"
+  ],
+  "availability": {
+    "kokoro-george": true,
+    "kokoro-fable": true,
+    "cosyvoice-alfred": true,
+    "qwen-alfred": false
+  },
+  "inferenceSourceFilesMatched": 7
+}

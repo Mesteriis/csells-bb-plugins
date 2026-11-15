@@ -1,0 +1,21 @@
+[Unit]
+Description=Jarvis self-hosted TTS comparison broker
+After=network-online.target jarvis-kokoro.service
+Wants=jarvis-kokoro.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+[Service]
+User=tester
+WorkingDirectory=/home/tester/jarvis/local-tts
+Environment=PATH=/home/tester/jarvis/node/bin:/usr/bin:/bin
+Environment=ENGINE_ROOT=/home/tester/jarvis/python-spikes
+ExecStart=/home/tester/jarvis/node/bin/node broker.mjs
+MemoryMax=6500M
+MemorySwapMax=1G
+CPUQuota=350%
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+NoNewPrivileges=true
+[Install]
+WantedBy=multi-user.target

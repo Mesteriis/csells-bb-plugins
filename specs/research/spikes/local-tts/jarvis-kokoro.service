@@ -1,0 +1,20 @@
+[Unit]
+Description=Jarvis Kokoro comparison (disposable inference VM)
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+[Service]
+User=tester
+WorkingDirectory=/home/tester/jarvis/local-tts
+Environment=PORT=4854
+Environment=PATH=/home/tester/jarvis/node/bin:/usr/bin:/bin
+ExecStart=/home/tester/jarvis/node/bin/node kokoro-server.mjs
+MemoryMax=2300M
+MemorySwapMax=0
+CPUQuota=200%
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target

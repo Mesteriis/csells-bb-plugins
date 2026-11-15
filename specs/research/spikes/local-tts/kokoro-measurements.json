@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-15",
+  "engine": "kokoro-js1.2.1/fp32",
+  "host": "Lynx disposable VM222; 2vCPU/2GiBRAM/4GiBswap; one model at a time",
+  "notes": "Standalone PCM measurements. No subjective quality score. Swap needed to avoid OOM; not a fully provisioned production performance result.",
+  "samples": [
+    {
+      "id": "bm_george-1.25-ack",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 3.3,
+      "firstMs": 1159.277082,
+      "elapsedMs": 1160.126571,
+      "rtf": 0.35155350636363636,
+      "sha256": "6102efd382710c2c6dbfbd5a9f268a999b415e949ab795359fa3a37083ba5dd2"
+    },
+    {
+      "id": "bm_george-1.25-passage",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 15.95,
+      "firstMs": 4436.631187,
+      "elapsedMs": 5694.717446000001,
+      "rtf": 0.3570355765517242,
+      "sha256": "353dc2fa244b71963450505288d09ba0f162c6b333342ce64e2a8ad3345f6fe7"
+    },
+    {
+      "id": "bm_george-1.25-technical",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_george",
+      "speed": 1.25,
+      "seconds": 7.975,
+      "firstMs": 2808.9056040000005,
+      "elapsedMs": 2811.776478999999,
+      "rtf": 0.35257385316614415,
+      "sha256": "7d3de1b5d5e6d4ab3168f00cb8350a2a395afc03c815ca73230e8de667a38d94"
+    },
+    {
+      "id": "bm_george-1.4-ack",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 2.6,
+      "firstMs": 853.317477999999,
+      "elapsedMs": 853.5034049999995,
+      "rtf": 0.3282705403846152,
+      "sha256": "663a3079a61c6705cc673f9518e3e8a4112a9aa6fc39adc0cc59001c7cb7459a"
+    },
+    {
+      "id": "bm_george-1.4-passage",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 12.8,
+      "firstMs": 3432.7838119999997,
+      "elapsedMs": 4399.360763000001,
+      "rtf": 0.34370005960937505,
+      "sha256": "88495dceccfed45fa2c8fbd2457f26b425acde568eb9b59856a5652a6d0cfe3e"
+    },
+    {
+      "id": "bm_george-1.4-technical",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_george",
+      "speed": 1.4,
+      "seconds": 6.175,
+      "firstMs": 2075.2315070000004,
+      "elapsedMs": 2076.5699600000007,
+      "rtf": 0.3362866331983807,
+      "sha256": "78160f258604b9c6bd98492b17d6a8258476f0215fe2282c0d463b3b095b9007"
+    },
+    {
+      "id": "bm_fable-1.25-ack",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 3.225,
+      "firstMs": 1094.9723299999969,
+      "elapsedMs": 1095.196297999999,
+      "rtf": 0.3395957513178291,
+      "sha256": "fe940b26ce1493feb06e8c5f47e92f013f9ab2f01d94aa9a0866ad38c9a85194"
+    },
+    {
+      "id": "bm_fable-1.25-passage",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 13.95,
+      "firstMs": 3728.0867080000025,
+      "elapsedMs": 4872.763685000002,
+      "rtf": 0.3493020562724016,
+      "sha256": "26dc1c9d9667ca84b08fc0bdb5228a8b8981f1c9f635710717c6d94eefa9bc4c"
+    },
+    {
+      "id": "bm_fable-1.25-technical",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_fable",
+      "speed": 1.25,
+      "seconds": 7.25,
+      "firstMs": 2471.691594,
+      "elapsedMs": 2473.399238000002,
+      "rtf": 0.34115851558620713,
+      "sha256": "a42a7825941101e346694e0a5f20376474c84a67b3bc0894d5e54b252dc91274"
+    },
+    {
+      "id": "bm_fable-1.4-ack",
+      "text": "Good afternoon, Chris. Two agents need your answer.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 2.575,
+      "firstMs": 846.1251580000026,
+      "elapsedMs": 846.7269540000016,
+      "rtf": 0.32882600155339864,
+      "sha256": "45eaf517e8d9675b771e60ec22de12d4aa0cf5d69da0b85bc211a4026006a0ba"
+    },
+    {
+      "id": "bm_fable-1.4-passage",
+      "text": "The lighthouse keeper opened the door and looked across the quiet harbor. A small boat was returning before sunset. He lit the lamp, checked the weather, and waited for the crew to reach the dock. Everything was calm. There was plenty of time to explain the plan clearly, one step at a time.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 11.225,
+      "firstMs": 3004.9163709999993,
+      "elapsedMs": 3915.5670219999993,
+      "rtf": 0.3488255698886414,
+      "sha256": "33263abe4b6a6df51b27f0ba5a32a5e754e163e1ceb33856cce6008041f0aa26"
+    },
+    {
+      "id": "bm_fable-1.4-technical",
+      "text": "The Jarvis pull request is ready. Three tests passed. Version two point four starts at three thirty. The staging server is healthy.",
+      "voice": "bm_fable",
+      "speed": 1.4,
+      "seconds": 5.675,
+      "firstMs": 1918.671956000002,
+      "elapsedMs": 1920.4990859999998,
+      "rtf": 0.3384139358590308,
+      "sha256": "c591ee71ec883ecb5bccf3c472d6d410b4a704e3f8e8ff2d4bb94029f677c6a5"
+    }
+  ]
+}

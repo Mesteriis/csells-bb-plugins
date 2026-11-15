@@ -1,7 +1,38 @@
 {
-  "defaultVoice": "cartesia",
+  "defaultVoice": "kokoro-george",
   "voices": [
-    {"id":"cartesia","label":"Cartesia · Daniel","provider":"cartesia","voice":"47c38ca4-5f35-497b-b1a3-415245fb35e1","model":"sonic-3.6-2026-08-27"},
-    {"id":"inworld","label":"Inworld · Dennis","provider":"inworld","voice":"Dennis","model":"inworld-tts-2"}
+    {
+      "id": "kokoro-george",
+      "label": "Kokoro \u00b7 George (stock British)",
+      "provider": "self-hosted",
+      "model": "kokoro-fp32",
+      "voice": "bm_george",
+      "endpoint": "http://127.0.0.1:4850/speech"
+    },
+    {
+      "id": "kokoro-fable",
+      "label": "Kokoro \u00b7 Fable (stock British)",
+      "provider": "self-hosted",
+      "model": "kokoro-fp32",
+      "voice": "bm_fable",
+      "endpoint": "http://127.0.0.1:4850/speech"
+    },
+    {
+      "id": "qwen-alfred",
+      "label": "Qwen \u00b7 Alfred reference",
+      "provider": "self-hosted",
+      "model": "qwen3-tts-0.6b",
+      "voice": "alfred",
+      "endpoint": "http://127.0.0.1:4850/speech",
+      "available": false
+    },
+    {
+      "id": "cosyvoice-alfred",
+      "label": "CosyVoice \u00b7 Alfred reference",
+      "provider": "self-hosted",
+      "model": "cosyvoice3",
+      "voice": "alfred",
+      "endpoint": "http://127.0.0.1:4850/speech"
+    }
   ]
 }
