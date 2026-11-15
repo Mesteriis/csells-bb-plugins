@@ -1,6 +1,6 @@
 # LiveKit TypeScript conversation spike
 
-Date: 2026-11-15. Status: staged conversation spike; physical Android/car acceptance pending. No stable promotion.
+Date: 2026-11-15. Status: staged conversation spike; initial Android user test reported successful. Extended device/car acceptance remains open. No stable promotion.
 
 ## Decision and implementation
 
@@ -143,10 +143,47 @@ Private detailed evidence lives outside the VM under the task's `jarvis-staging`
 artifact directory: `livekit-roundtrip.json`, `livekit-endurance.json`, screenshots,
 failed-run records and browser harnesses. A sanitized summary is committed here.
 
+## Initial Android user test
+
+Chris reported “That seemed to work pretty well” and supplied browser diagnostics
+for 2026-11-15 16:43:38–16:45:15 UTC. The Android Chrome client timeline correlates
+with a single staging worker session and its successful cleanup. This is the
+first positive physical-device report for the LiveKit candidate. The reduced
+user-agent string does not identify the actual Android version, and browser
+settings do not identify the Bluetooth output route.
+
+- About 96 seconds, an initial briefing and three transcribed user turns.
+- All 18 media samples report microphone enabled and playback allowed. Received
+  audio energy rises during the spoken responses. No reported packet loss,
+  reconnect, client error, or framework false-interruption recovery event.
+  Sampled jitter is 3–14 ms. Absence of a false-interruption event alone does not
+  establish that every speech detection was intentional; the diagnostics omit text.
+- One interruption of the opening briefing. The server transitions from detected
+  user speech to agent listening in 160 ms (164 ms between client receipt events).
+  This excludes physical voice onset, device buffering and acoustic output tail;
+  it must not be compared directly with the earlier injected-onset timing.
+- Two subsequent complete replies last 7.360 and 11.968 seconds by synthesis
+  count; the agent speaking intervals match those durations. The final reply
+  was still playing when the session ended, so its full delivery is not verified.
+- From detected user end-of-speech to agent speaking: approximately 6.2, 7.9 and
+  9.9 seconds. Batch transcription accounts for 0.85–0.99 seconds; most remaining
+  time is between transcription and the director response. This makes response
+  latency the clearest next improvement, with media delivery functioning in this
+  short test.
+- Disconnect is followed by server cleanup within about half a second. The
+  download was made after End, so its top-level session ID is absent; matching
+  phase timestamps/media counters supplied correlation. Retaining the last session
+  ID after End is a diagnostics follow-up.
+
+The original attachment remains in private thread storage; no device group ID or
+conversation text was added to the repository. Positive spike feedback does not
+constitute approval to promote the plugin to stable.
+
 ## Remaining acceptance and scope
 
-1. Actual Android browser plus the user's car Bluetooth: simultaneous capture and
-   output, echo during silence, repeated short/quiet controls and genuine barge-in.
+1. Repeat the successful initial Android test across longer conversations and
+   confirmed car Bluetooth routes: echo during silence, repeated short/quiet
+   controls and genuine barge-in.
 2. Framework false-interruption resume is configured and verified in upstream
    source; the physical route's false-interruption behavior is not yet accepted.
 3. Thirty-turn conversation, route changes, backgrounding/lock screen and extended
