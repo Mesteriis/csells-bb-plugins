@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-read-aloud",
+  "name": "bb-plugin-read-aloud-local",
   "version": "0.1.4",
   "scripts": {
     "build": "bb plugin build",

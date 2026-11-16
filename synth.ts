@@ -1,3 +1,8 @@
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 // Neural speech synthesis over Microsoft Edge's Read Aloud WebSocket API.
 //
 // Implemented directly rather than through a package, for two reasons found the
@@ -200,6 +205,26 @@ async function connect(): Promise<WebSocket> {
   );
 }
 
+const run = promisify(execFile);
+
+async function synthesizeMilena(text: string, rate: string, signal?: AbortSignal) {
+  const dir = await mkdtemp(join(tmpdir(), "bb-read-aloud-"));
+  try {
+    const input = join(dir, "text.txt");
+    const aiff = join(dir, "speech.aiff");
+    const mp3 = join(dir, "speech.mp3");
+    const speed = Number.parseFloat(rate) || 0;
+    const wordsPerMinute = Math.round(180 * (1 + Math.max(-50, Math.min(100, speed)) / 100));
+
+    await writeFile(input, text, { mode: 0o600 });
+    await run("/usr/bin/say", ["-v", "Milena", "-r", String(wordsPerMinute), "-f", input, "-o", aiff], { signal, timeout: 30000 });
+    await run("/opt/homebrew/bin/ffmpeg", ["-v", "error", "-i", aiff, "-ar", "24000", "-ac", "1", "-b:a", "48k", mp3], { signal, timeout: 15000 });
+    return await readFile(mp3);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
 export interface SynthesisOptions {
   text: string;
   voice: string;
@@ -218,6 +243,11 @@ export async function* synthesize(
   options: SynthesisOptions,
 ): AsyncGenerator<Uint8Array> {
   const { text, voice, rate = "", signal } = options;
+  if (voice === "macOS-Milena") {
+    yield await synthesizeMilena(text, rate, signal);
+    return;
+  }
+
   if (text.trim() === "") return;
 
   const socket = await connect();

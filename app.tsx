@@ -23,7 +23,7 @@ import { COARSE_POINTER_COMPACT_ICON_BUTTON_CLASS } from "@/components/ui/coarse
 import { cn } from "@/lib/utils";
 
 /** Routes are namespaced by plugin id; auth "local" accepts the BB app origin. */
-const PLUGIN_ROUTE = "/api/v1/plugins/read-aloud/http";
+const PLUGIN_ROUTE = "/api/v1/plugins/read-aloud-local/http";
 const STOP_CHANNEL = "read-aloud/stop";
 const SEEK_SECONDS = 10;
 
