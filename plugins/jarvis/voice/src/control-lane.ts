@@ -14,5 +14,6 @@ export class ControlLane {
     catch (error) { if (isCurrent()) throw error; }
     finally { if (this.current === ticket) this.current = undefined; }
   }
-  close() { this.closed = true; this.current = undefined; }
+  cancel() { this.current = undefined; }
+  close() { this.closed = true; this.cancel(); }
 }

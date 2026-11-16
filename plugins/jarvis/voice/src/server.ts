@@ -186,7 +186,7 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/ready'){void c.start().catch(()=>c.event('error',{kind:'brief',text:'Jarvis could not prepare the briefing.'}));send(200,{ok:true});return;}
     if(req.url==='/text'){
       if(typeof body.text!=='string'||!body.text.trim()||body.text.length>8000){send(400,{error:'Enter a message of at most 8000 characters.'});return;}
-      c.backgroundEpoch++;c.session.interrupt();c.session.generateReply({userInput:body.text});send(200,{ok:true});return;
+      c.backgroundEpoch++;c.controls.cancel();c.session.interrupt();await c.relay.command('interrupt');c.session.generateReply({userInput:body.text});send(200,{ok:true});return;
     }
     if(req.url==='/command'){
       if(!['brief','questions','watch','quiet','stop-work'].includes(String(body.action))){send(400,{error:'Unknown command'});return;}
@@ -203,7 +203,7 @@ const server=createServer(async(req,res)=>{
     }
     if(req.url==='/heartbeat'){send(200,{ok:true});return;}
     if(req.url==='/close'){await c.close();send(200,{ok:true});return;}
-    if(req.url==='/stop-speaking'){c.session.interrupt();send(200,{ok:true});return;}
+    if(req.url==='/stop-speaking'){c.backgroundEpoch++;c.controls.cancel();c.session.interrupt();await c.relay.command('interrupt');send(200,{ok:true});return;}
     send(404,{error:'Not found'});
   } catch(e) {if(e instanceof SpeechSelectionError){send(e.status,{error:e.message});return;}log('service','request-failed',{kind:e instanceof Error?e.message:'unknown'});send(502,{error:'Voice request failed; check Jarvis diagnostics.'});}
 });

@@ -1,0 +1,71 @@
+{
+  "before": {
+    "at": "2026-11-16T02:59:21.725Z",
+    "checks": [
+      "idle disabled controls; phone layout; CosyVoice default",
+      "voice and pace selectors",
+      "Start; settings locked during speech",
+      "microphone off/on during speech",
+      "What needs me during speech",
+      "Brief me during speech",
+      "watch on/off during speech",
+      "quiet/resume during speech",
+      "Stop speaking during speech"
+    ],
+    "errors": [],
+    "failure": "AssertionError [ERR_ASSERTION]: Stop must discard pending briefing\n\n8 !== 7\n"
+  },
+  "fullAfter": {
+    "at": "2026-11-16T03:00:50.199Z",
+    "checks": [
+      "idle disabled controls; phone layout; CosyVoice default",
+      "voice and pace selectors",
+      "Start; settings locked during speech",
+      "microphone off/on during speech",
+      "What needs me during speech",
+      "Brief me during speech",
+      "watch on/off during speech",
+      "quiet/resume during speech",
+      "Stop speaking during speech",
+      "Stop speaking during briefing preparation",
+      "typed Send interrupts speech and returns real model answer",
+      "Download diagnostics contains current session/events",
+      "voice grade controls and JSON export",
+      "delegated work expansion and live list",
+      "Stop delegated work dispatch (existing test-owned tasks)",
+      "End during response; selectors re-enabled",
+      "End during startup; no late resurrection",
+      "Use text; audio-only controls disabled",
+      "text questions",
+      "text brief",
+      "text watch",
+      "text watch",
+      "text quiet",
+      "text quiet",
+      "text stop-work",
+      "text Send real model answer",
+      "text End",
+      "Enable audio recovers injected autoplay denial",
+      "End retry after failed close preserves ownership"
+    ],
+    "errors": []
+  },
+  "recoveryBefore": {
+    "at": "2026-11-16T03:02:40.809Z",
+    "checks": [
+      "idle disabled controls; phone layout; CosyVoice default",
+      "Enable audio recovers injected autoplay denial"
+    ],
+    "errors": [],
+    "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error: Injected cleanup failure'\n- ''\n"
+  },
+  "recoveryAfter": {
+    "at": "2026-11-16T03:03:53.158Z",
+    "checks": [
+      "idle disabled controls; phone layout; CosyVoice default",
+      "Enable audio recovers injected autoplay denial",
+      "End retry after failed close preserves ownership and clears the recovered error"
+    ],
+    "errors": []
+  }
+}

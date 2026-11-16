@@ -90,6 +90,7 @@ function end():Promise<void>{
   ending=finishEnd().finally(()=>{ending=undefined;});return ending;
 }
 async function finishEnd(){
+  const retryingCleanup=element('state').textContent?.startsWith('Cleanup failed');
   ++voiceEpoch;
   button('start').disabled=true;button('text-start').disabled=true;button('end').disabled=true;
   status('Ending…');
@@ -102,6 +103,7 @@ async function finishEnd(){
     status('Cleanup failed · retry End conversation');button('end').disabled=false;return;
   }
   await oldRoom?.disconnect();
+  if(retryingCleanup)element('error').textContent='';
   element('media').replaceChildren();speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;for(const id of activeControls)button(id).disabled=true;status('Ended');record('ended');
 }
 async function start(withMicrophone=true){

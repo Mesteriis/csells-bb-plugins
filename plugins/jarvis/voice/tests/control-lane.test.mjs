@@ -23,3 +23,9 @@ test('close fences late presentation and prevents new control operations',async(
  lane.close();pending.resolve();await work;assert.equal(presented,false);
  await assert.rejects(lane.run(async()=>{},{preempt:true}),/closed/);
 });
+test('cancel fences pending speech but allows the next control',async()=>{
+ const lane=new ControlLane(),pending=deferred();let spoke=false;
+ const work=lane.run(async current=>{await pending.promise;if(current())spoke=true;});
+ lane.cancel();pending.resolve();await work;assert.equal(spoke,false);assert.equal(lane.busy,false);
+ await lane.run(async current=>assert(current()));
+});
