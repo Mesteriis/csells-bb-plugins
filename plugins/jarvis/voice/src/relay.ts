@@ -157,6 +157,13 @@ class BBDirectorStream extends llm.LLMStream {
 }
 export class JarvisAgent extends voice.Agent {
   constructor(readonly relay: Relay) { super({instructions:'Coordinate Chris’s real BB sessions through the restricted Jarvis relay.'}); }
+  async speakSample(text:string) {
+    this.relay.focus=undefined;
+    this.relay.event('response',{kind:'sample',text,question:''});
+    const speech=this.session.say(text,{allowInterruptions:true});
+    await speech.waitForPlayout();
+    this.relay.event('playout-ended',{interrupted:speech.interrupted,kind:'sample'});
+  }
   async speakState(state: State) {
     this.relay.present(state);
     if (!state.utterance) return;
@@ -168,6 +175,15 @@ export class JarvisAgent extends voice.Agent {
 // Explicit Pocket baseline. Self-hosted candidates use the SDK default TTS node
 // for both model replies and proactive speech.
 export class AlfredAgent extends JarvisAgent {
+  async speakSample(text:string) {
+    this.relay.focus=undefined;
+    this.relay.event('response',{kind:'sample',text,question:''});
+    const input=new ReadableStream<string>({start(c){c.enqueue(text);c.close();}});
+    const audio=await this.ttsNode(input);
+    const speech=this.session.say(text,{audio,allowInterruptions:true});
+    await speech.waitForPlayout();
+    this.relay.event('playout-ended',{interrupted:speech.interrupted,kind:'sample'});
+  }
   async speakState(state:State) {
     this.relay.present(state);
     if(!state.utterance)return;

@@ -68,3 +68,8 @@ second after Start. The new real-browser gate fails at 13.1 s (CosyVoice) and 14
 (Kokoro), despite warm models. Full-briefing buffering, media startup and batch
 TTS all remain on the critical path. See the [API/startup audit](../research/jarvis-streaming-api-audit-2026-11-15.md).
 Do not mark conversation acceptance complete from quality/interruption passes.
+
+Stock-text comparison is now staged at Chris's request: Start skips briefing
+inference and synthesizes identical text afresh. Warm click-to-audio remains
+2.1–4.0 seconds; Qwen is re-enabled for this comparison with its reliability
+warning, not accepted for production. See the [stock briefing results](../research/jarvis-stock-briefing-2026-11-15.md).

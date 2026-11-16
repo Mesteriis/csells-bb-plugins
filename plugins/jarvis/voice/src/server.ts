@@ -12,8 +12,11 @@ import { BBSTT, BBDirector, JarvisAgent, AlfredAgent, Relay } from './relay.js';
 initializeLogger({pretty:false, level:'warn'});
 const configPath=process.env.JARVIS_VOICE_CONFIG??process.env.JARVIS_LIVEKIT_CONFIG;
 if(!configPath)throw Error("Set JARVIS_VOICE_CONFIG to the private companion configuration file");
-const config = JSON.parse(await readFile(configPath,'utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string; speech?:unknown};
+const config = JSON.parse(await readFile(configPath,'utf8')) as {apiKey:string; apiSecret:string; relayToken:string; turnSecretPath:string; turnUrl:string; speech?:unknown; startupBriefing?:'sample'};
 const speechCatalog=new SpeechCatalog(config.speech);
+const sampleBriefing = config.startupBriefing==='sample'
+  ? "Good evening, Chris. This is the stock Jarvis voice comparison. Every voice reads these same words, with fresh audio generated after you press Start. Listen for a clear, brisk delivery without fuzz or missing words. You can interrupt me, or ask for your real thread briefing when you are ready."
+  : undefined;
 const rooms = new RoomServiceClient('http://127.0.0.1:7880',config.apiKey,config.apiSecret);
 const vad = await VAD.load();
 const sessions = new Map<string, Connection>();
@@ -98,6 +101,15 @@ class Connection {
     this.started=true; await this.ready;
     try {
       await this.controls.run(async current=>{
+        if(sampleBriefing){
+          const paused=await this.relay.command('watch',{enabled:false});
+          await this.relay.acknowledge(paused,'delivered');
+          if(current()){
+            this.event('briefing',{kind:'sample'});
+            await this.agent.speakSample(sampleBriefing);
+          }
+          return;
+        }
         const watching=await this.relay.command('watch',{enabled:true});
         await this.relay.acknowledge(watching,'delivered');
         if(!current())return;
@@ -158,7 +170,7 @@ const server=createServer(async(req,res)=>{
     if(req.method==='GET'&&req.url==='/health'){send(200,{ok:true,framework:'livekit-agents-node',sessions:sessions.size});return;}
     if(req.method!=='POST'){send(405,{error:'Method not allowed'});return;}
     const body=await jsonBody(req);
-    if(req.url==='/voices'){send(200,speechCatalog.describe());return;}
+    if(req.url==='/voices'){send(200,{...speechCatalog.describe(),sampleBriefing});return;}
     if(req.url==='/session') {
       if(sessions.size) {send(409,{error:'A LiveKit conversation is already active. End it first or wait 90 seconds for cleanup.'});return;}
       const connection=new Connection(speechCatalog.select(body)); sessions.set(connection.id,connection);

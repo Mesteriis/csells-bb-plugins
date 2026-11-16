@@ -145,3 +145,12 @@ next-reply timeout following interruption. Native/browser recordings remain in
 the research evidence. Re-enable only after qualifying a faster serving path;
 raising a timeout does not satisfy conversational responsiveness. Kokoro and
 CosyVoice remain enabled for user listening review.
+
+For the staged voice comparison, set `startupBriefing: "sample"` in the private
+companion configuration. Start then speaks the same stock text through the
+selected TTS engine without calling the briefing model or enabling automatic
+updates. Audio is synthesized fresh. The page labels this mode and exposes the
+sample text; **Brief me** still requests a real briefing. Omit the setting to
+restore the normal startup. Model preparation and media connection remain in
+Start-to-audio latency. Qwen's availability in this comparison does not establish
+continuous-conversation reliability.

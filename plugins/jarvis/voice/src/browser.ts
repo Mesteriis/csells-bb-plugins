@@ -12,6 +12,14 @@ function speechSettingsLocked(locked:boolean){voiceSelect.disabled=locked;paceSe
 async function loadVoices(){
  try{
   const catalog=await request('voices');voiceSelect.replaceChildren();
+  if(catalog.sampleBriefing){
+    button('start').textContent='Start voice test';
+    element('voice-note').textContent='Stock briefing · fresh synthesis on every Start. End the conversation to change voices. Qwen is experimental and may stall. Use Brief me for your real threads.';
+    const preview=document.createElement('details');
+    const heading=document.createElement('summary');heading.textContent='Stock briefing text';
+    const text=document.createElement('p');text.textContent=catalog.sampleBriefing;
+    preview.append(heading,text);element('voice-note').append(preview);
+  }
   for(const v of catalog.voices){const option=new Option(v.label+(v.available?'':' · not ready'),v.id);option.disabled=!v.available;voiceSelect.add(option);}
   voiceSelect.value=catalog.defaultVoice;voiceReady=catalog.voices.some((v:{id:string;available:boolean})=>v.id===voiceSelect.value&&v.available);
   const busy=button('text-start').disabled;speechSettingsLocked(busy);button('start').disabled=busy||!voiceReady;
@@ -56,6 +64,7 @@ async function textAction(action:string,args:Record<string,unknown>={},backgroun
   finally {textBusy--;if(textClient===clientId&&epoch===textEpoch)status('Ready · text only');}
 }
 async function startText(){
+  record('start-click');
   speechSettingsLocked(true);button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Connecting text…');
   const clientId=crypto.randomUUID();
   try {
@@ -83,6 +92,7 @@ async function end(){
   element('media').replaceChildren();speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;for(const id of activeControls)button(id).disabled=true;status('Ended');record('ended');
 }
 async function start(withMicrophone=true){
+  record('start-click');
   speechSettingsLocked(true);button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Preparing your voice…');
   room=new Room({adaptiveStream:true,dynacast:true,audioCaptureDefaults:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
   const unlock=room.startAudio();
