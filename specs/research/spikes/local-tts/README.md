@@ -78,3 +78,10 @@ incremental decoder latency. HTTP cancellation discards pending/stale audio;
 upstream GPU computation can continue until the current phrase completes. The
 60-second worker watchdog terminates hangs. Browser interruption latency and
 next-turn readiness must be measured separately.
+
+CosyVoice noise experiment: `JARVIS_COSY_CLEANUP=1` on the broker enables a
+70 Hz high-pass plus conservative FFmpeg spectral reduction (`nr=6:nf=-50`) on
+CosyVoice output only. The broker passes the environment to its worker. Original
+reference audio is unchanged. Staging uses a systemd drop-in named `cleanup.conf`;
+remove that drop-in and restart the broker to restore unfiltered output. This
+is a listening candidate, not proof of a noise-free voice or sub-second latency.

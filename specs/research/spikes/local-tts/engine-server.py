@@ -31,7 +31,10 @@ else:
  def generate(text,speed):
   pieces=[x['tts_speech'].detach().float().cpu().numpy().reshape(-1) for x in model.inference_zero_shot(text,'',str(ref),zero_shot_spk_id='alfred',stream=False,speed=speed)]
   if model.sample_rate!=24000:raise ValueError('Unexpected sample rate')
-  return (np.clip(np.concatenate(pieces),-1,1)*32767).round().astype('<i2').tobytes()
+  pcm=(np.clip(np.concatenate(pieces),-1,1)*32767).round().astype('<i2').tobytes()
+  if os.environ.get('JARVIS_COSY_CLEANUP')=='1':
+   pcm=subprocess.run(['ffmpeg','-v','error','-f','s16le','-ar','24000','-ac','1','-i','pipe:0','-af','highpass=f=70,afftdn=nr=6:nf=-50','-f','s16le','pipe:1'],input=pcm,stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True,timeout=10).stdout
+  return pcm
  expected='cosyvoice3'
 # Pay first-use kernels/reference preparation before returning session readiness.
 generate('Good afternoon, Chris.',1.25)

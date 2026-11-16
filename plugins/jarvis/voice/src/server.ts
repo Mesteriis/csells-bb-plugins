@@ -146,7 +146,7 @@ class Connection {
       const state=await this.relay.command(stopping?'talk':action,stopping?{text:'stop work'}:args);
       if(current())await this.agent.speakState(state);
       else await this.relay.acknowledge(state,'interrupted');
-    },{preempt:stopping});
+    },{preempt:true});
   }
   async close() {
     if(this.closed) return; this.closed=true; this.controls.close();

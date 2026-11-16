@@ -1,0 +1,43 @@
+{
+  "before": {
+    "at": "2026-11-16T02:49:28.157Z",
+    "checks": [],
+    "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Command failed; inspect the current state before retrying.'\n- ''\n"
+  },
+  "after": {
+    "at": "2026-11-16T02:50:45.891Z",
+    "checks": [
+      "What needs me interrupts stock CosyVoice speech and speaks real question response"
+    ]
+  },
+  "afterNoiseCleanup": {
+    "at": "2026-11-16T02:51:28.879Z",
+    "checks": [
+      "What needs me interrupts stock CosyVoice speech and speaks real question response"
+    ]
+  },
+  "noiseExperiment": {
+    "filter": "highpass=f=70,afftdn=nr=6:nf=-50",
+    "originalReferenceUnchanged": true,
+    "sampleRate": 24000,
+    "originalSamples": 480480,
+    "cleanSamples": 480480,
+    "quiet10pctDbBefore": -43.7513,
+    "sameWindowsDbAfter": -46.2555,
+    "filterProcessMs": 79,
+    "limits": "Quietest 10 percent of 100ms windows can include speech; not SNR or perceptual acceptance. Historical same-input waveform comparison; one trial."
+  },
+  "finalBrowser": {
+    "at": "2026-11-16T02:51:58.116Z",
+    "speech": {
+      "voice": "cosyvoice-alfred",
+      "speed": 1.25
+    },
+    "seconds": 16.017645833333333,
+    "wordsPerMinute": 198.53104713941786,
+    "clippedFraction": 0,
+    "errors": [],
+    "transcription": "BB configured STT reproduced all 53 words exactly"
+  },
+  "cleanup": "Companion healthy, sessions 0; test browsers closed"
+}
