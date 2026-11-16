@@ -5,6 +5,8 @@ const button=(id:string)=>element(id) as HTMLButtonElement;
 const status=(text:string)=>{element('state').textContent=text;};
 let room:Room|undefined, credentials:{id:string;controlToken:string}|undefined, heartbeat:ReturnType<typeof setInterval>|undefined;
 let textClient:string|undefined, textFocus:string|undefined, textEpoch=0, textBusy=0;
+let voiceEpoch=0;
+let ending:Promise<void>|undefined;
 let lastSpeechProfile:Record<string,unknown>|undefined;
 let lastSessionId:string|undefined, watching=false, quiet=false, voiceReady=false;
 const voiceSelect=element('voice') as HTMLSelectElement,paceSelect=element('pace') as HTMLSelectElement;
@@ -83,23 +85,40 @@ async function startText(){
   }catch(error){fail(error);if(!textClient){speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;status('Text connection failed');}}
 }
 function fail(error:unknown){record('error',{message:String(error)});element('error').textContent=String(error);}
-async function end(){
+function end():Promise<void>{
+  if(ending)return ending;
+  ending=finishEnd().finally(()=>{ending=undefined;});return ending;
+}
+async function finishEnd(){
+  ++voiceEpoch;
+  button('start').disabled=true;button('text-start').disabled=true;button('end').disabled=true;
+  status('Ending…');
   clearInterval(heartbeat); const old=credentials;credentials=undefined;
   const oldText=textClient;textClient=undefined;textFocus=undefined;textEpoch++;
   if(oldText)await control('assistant',{action:'close',clientId:oldText}).catch(fail);
-  await room?.disconnect();room=undefined;
-  if(old)await request('close',old).catch(fail);
+  const oldRoom=room;room=undefined;
+  if(old)try{await request('close',old);}catch(error){
+    credentials=old;await oldRoom?.disconnect();fail(error);
+    status('Cleanup failed · retry End conversation');button('end').disabled=false;return;
+  }
+  await oldRoom?.disconnect();
   element('media').replaceChildren();speechSettingsLocked(false);button('start').disabled=!voiceReady;button('text-start').disabled=false;for(const id of activeControls)button(id).disabled=true;status('Ended');record('ended');
 }
 async function start(withMicrophone=true){
+  if(ending)await ending;
+  const epoch=++voiceEpoch;
+  const reservation={id:crypto.randomUUID(),controlToken:crypto.randomUUID()};
+  credentials=reservation;
   record('start-click');
   speechSettingsLocked(true);button('start').disabled=true;button('text-start').disabled=true;element('error').textContent='';status('Preparing your voice…');
   room=new Room({adaptiveStream:true,dynacast:true,audioCaptureDefaults:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
+  const currentRoom=room;
   const unlock=room.startAudio();
+  button('end').disabled=false;
   room.on(RoomEvent.TrackSubscribed,track=>{if(track.kind===Track.Kind.Audio){const audio=track.attach();audio.autoplay=true;element('media').append(audio);audio.addEventListener('playing',()=>record('media-playing'));audio.addEventListener('error',()=>record('media-error'));record('audio-subscribed');}});
   room.on(RoomEvent.AudioPlaybackStatusChanged,()=>{button('audio').hidden=room?.canPlaybackAudio??true;record('audio-permission',{allowed:room?.canPlaybackAudio});});
   room.on(RoomEvent.ConnectionStateChanged,state=>{record('connection',{state});if(state===ConnectionState.Reconnecting)status('Reconnecting…');});
-  room.on(RoomEvent.Disconnected,()=>{if(credentials){status('Disconnected');void end();}});
+  room.on(RoomEvent.Disconnected,()=>{if(room===currentRoom&&credentials){status('Disconnected');void end();}});
   room.on(RoomEvent.DataReceived,(bytes,_participant,_kind,topic)=>{
     if(topic!=='jarvis')return;
     const e=JSON.parse(new TextDecoder().decode(bytes));
@@ -113,12 +132,16 @@ async function start(withMicrophone=true){
   });
   try {
     await unlock;
-    const data=await request('session',{voice:voiceSelect.value,speed:Number(paceSelect.value)});
+    if(epoch!==voiceEpoch)return;
+    const data=await request('session',{...reservation,voice:voiceSelect.value,speed:Number(paceSelect.value)});
+    if(epoch!==voiceEpoch){await request('close',reservation).catch(()=>{});return;}
     element('speaking-voice').textContent=`${data.speech.label} · ${data.speech.speed===1?'Normal':data.speech.speed===1.4?'Faster':'Brisk'}`;
     lastSpeechProfile={...data.speech};record('speech-profile',lastSpeechProfile);credentials={id:data.id,controlToken:data.controlToken};lastSessionId=data.id;
     const signalUrl=new URL('livekit-signal',location.href);signalUrl.protocol=location.protocol==='https:'?'wss:':'ws:';
     await room.connect(signalUrl.toString(),data.token,{rtcConfig:{iceTransportPolicy:'relay',iceServers:data.iceServers}});
+    if(epoch!==voiceEpoch){await currentRoom.disconnect();return;}
     if(withMicrophone)try{await room.localParticipant.setMicrophoneEnabled(true);}catch{fail('Microphone unavailable. You can type below and still hear replies.');}
+    if(epoch!==voiceEpoch){await currentRoom.disconnect();return;}
     button('mic').textContent=room.localParticipant.isMicrophoneEnabled?'Microphone off':'Microphone on';
     const publication=[...room.localParticipant.audioTrackPublications.values()][0];
     const settings=publication?.track?.mediaStreamTrack.getSettings();record('microphone',{settings});
@@ -143,7 +166,7 @@ async function start(withMicrophone=true){
       }
     }},5000);
     await request('ready',credentials);void refreshTasks();
-  }catch(error){fail(error);await end();}
+  }catch(error){if(epoch===voiceEpoch){fail(error);await end();}}
 };
 button('start').onclick=()=>void start();
 button('text-start').onclick=()=>void startText();

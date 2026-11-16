@@ -31,13 +31,14 @@ async function jwt(room:string,identity:string,agent=false) {
   return token.toJwt();
 }
 class Connection {
-  id = randomUUID(); secret = randomBytes(32).toString('hex');
+  id:string = randomUUID(); secret = randomBytes(32).toString('hex');
   name = `jarvis-${this.id}`; identity = `user-${this.id}`;
   room = new Room(); relay = new Relay(`Bearer ${config.relayToken}`, (p,d)=>this.event(p,d));
   tts:ReturnType<SpeechCatalog['create']>|undefined;
   agent:JarvisAgent;
   session:voice.AgentSession;
-  constructor(readonly speechChoice?:SpeechSelection) {
+  constructor(readonly speechChoice?:SpeechSelection, reservation?:{id:string;controlToken:string}) {
+    if(reservation){this.id=reservation.id;this.secret=reservation.controlToken;this.name=`jarvis-${this.id}`;this.identity=`user-${this.id}`;}
     this.tts=speechChoice?speechCatalog.create(speechChoice):undefined;
     this.agent=speechChoice?new JarvisAgent(this.relay):new AlfredAgent(this.relay);
     this.session = new voice.AgentSession({vad,tts:this.tts,stt:new BBSTT(this.relay),llm:new BBDirector(this.relay),turnHandling:{turnDetection:'vad',endpointing:{minDelay:500},interruption:{mode:'vad',minDuration:200,minWords:0,falseInterruptionTimeout:2000,resumeFalseInterruption:true},preemptiveGeneration:{enabled:false}}});
@@ -62,10 +63,11 @@ class Connection {
     if (this.room.localParticipant) void this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify({phase,...detail,at:Date.now()})),{reliable:true,topic:'jarvis'}).catch(()=>{});
   }
   async open() {
-    await speechCatalog.prepare(this.speechChoice);
-    await this.relay.command('start');
-    await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});
-    await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});
+    const live=()=>{if(this.closed)throw Error("Conversation cancelled during startup");};
+    await speechCatalog.prepare(this.speechChoice);live();
+    await this.relay.command('start');live();
+    await rooms.createRoom({name:this.name,maxParticipants:2,emptyTimeout:60,departureTimeout:20});live();
+    await this.room.connect('ws://127.0.0.1:7880',await jwt(this.name,`agent-${this.id}`,true),{autoSubscribe:true,dynacast:false});live();
     this.room.on(RoomEvent.TrackSubscribed,(track,publication,participant)=>{
       if(participant.identity===this.identity&&publication.source===TrackSource.SOURCE_MICROPHONE)void this.meterInput(track as RemoteAudioTrack).catch(()=>this.event('input-audio-error',{kind:'capture-meter-start'}));
     });
@@ -173,7 +175,8 @@ const server=createServer(async(req,res)=>{
     if(req.url==='/voices'){send(200,{...speechCatalog.describe(),sampleBriefing});return;}
     if(req.url==='/session') {
       if(sessions.size) {send(409,{error:'A LiveKit conversation is already active. End it first or wait 90 seconds for cleanup.'});return;}
-      const connection=new Connection(speechCatalog.select(body)); sessions.set(connection.id,connection);
+      if(typeof body.id!=='string'||!/^[a-f0-9-]{36}$/.test(body.id)||typeof body.controlToken!=='string'||!/^[a-f0-9-]{36}$/.test(body.controlToken)){send(400,{error:'Invalid startup reservation'});return;}
+      const connection=new Connection(speechCatalog.select(body),{id:body.id,controlToken:body.controlToken}); sessions.set(connection.id,connection);
       try {send(200,await connection.open());}catch(e){await connection.close();throw e;}return;
     }
     const c=sessions.get(String(body.id));

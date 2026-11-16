@@ -1,0 +1,15 @@
+{
+  "before": {
+    "at": "2026-11-16T02:44:53.282Z",
+    "checks": [],
+    "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error: A LiveKit conversation is already active. End it first or wait 90 seconds for cleanup.'\n- ''\n"
+  },
+  "after": {
+    "at": "2026-11-16T02:45:36.207Z",
+    "checks": [
+      "Lost Qwen session response released reservation; Kokoro restarted",
+      "Stop Qwen, End, immediately restart Kokoro"
+    ]
+  },
+  "scope": "Real staging browser/models; injected loss of startup HTTP response; synthetic silent microphone; no physical-device qualification"
+}
